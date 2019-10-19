@@ -1,0 +1,25 @@
+<html><head><link rel=stylesheet href=style.css></head><body><div class=SourcePanel style='font-size:12'><pre style='background-color:white'>
+<font color= "green">&lt%--
+
+   The Default.aspx page simply tests the browser type and redirects either to
+   the DesktopDefault or MobileDefault pages, depending on the device type.
+
+--%<font color= "blue">&gt</font></font>
+
+<font color= "blue">&lt</font><font color="maroon">script</font> language="C#" runat="server"<font color= "blue">&gt</font>
+<font color= "blue"></font>
+<font color= "blue">    public void</font> Page_Load(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">        if </font>(Request.Browser["IsMobileDevice"] == "true" ) {<font color= "blue"></font>
+<font color= "blue">        </font>
+<font color= "blue">            </font>Response.Redirect("MobileDefault.aspx");
+<font color= "blue">        </font>}
+<font color= "blue"></font><font color= "blue">        else </font>{<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "blue">            </font>Response.Redirect("DesktopDefault.aspx");
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "blue">&lt/</font><font color="maroon">script</font><font color= "blue">&gt</font>
+
+</pre>

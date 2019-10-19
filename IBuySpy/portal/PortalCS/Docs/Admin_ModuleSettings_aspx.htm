@@ -1,0 +1,288 @@
+<html><head><link rel=stylesheet href=style.css></head><body><div class=SourcePanel style='font-size:12'><pre style='background-color:white'>
+&lt%@ Page %<font color= "blue">&gt</font>
+&lt%@ Register TagPrefix="portal" TagName="Banner" Src="~/DesktopPortalBanner.ascx" %<font color= "blue">&gt</font>
+&lt%@ Import Namespace="ASPNetPortal" %<font color= "blue">&gt</font>
+&lt%@ Import Namespace="System.Data.SqlClient" %<font color= "blue">&gt</font>
+<font color= "green">&lt%--
+    The ModuleSettings.aspx page is used to enable administrators to view/edit/update
+    a portal module's settings (title, output cache properties, edit access)
+--%<font color= "blue">&gt</font></font>
+<font color= "blue">&lt</font><font color="maroon">html</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">script</font> language="C#" runat="server"<font color= "blue">&gt</font>
+<font color= "blue"></font>
+<font color= "blue">    </font>int moduleId = 0;
+<font color= "blue">    </font>int tabId = 0;
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The Page_Load server event handler on this page is used</font>
+<font color= "green">    // to populate the module settings on the page</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> Page_Load(Object Sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Verify that the current user has access to access this page</font>
+<font color= "blue"></font><font color= "blue">        if </font>(PortalSecurity.IsInRoles("Admins") == false) {<font color= "blue"></font>
+<font color= "blue">            </font>Response.Redirect("~/Admin/EditAccessDenied.aspx");
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "green">        // Determine Module to Edit</font>
+<font color= "blue"></font><font color= "blue">        if </font>(Request.Params["mid"] != null) {<font color= "blue"></font>
+<font color= "blue">            </font>moduleId = Int32.Parse(Request.Params["mid"]);
+<font color= "blue">        </font>}
+<font color= "green">        // Determine Tab to Edit</font>
+<font color= "blue"></font><font color= "blue">        if </font>(Request.Params["tabid"] != null) {<font color= "blue"></font>
+<font color= "blue">            </font>tabId = Int32.Parse(Request.Params["tabid"]);
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">        if </font>(Page.IsPostBack == false) {<font color= "blue"></font>
+<font color= "blue">            </font>BindData();
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The ApplyChanges_Click server event handler on this page is used</font>
+<font color= "green">    // to save the module settings into the portal configuration system</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> ApplyChanges_Click(Object Sender, EventArgs e) {
+<font color= "blue">    </font>
+<font color= "green">        // Obtain PortalSettings from Current Context</font>
+<font color= "blue">        </font>PortalSettings portalSettings = (PortalSettings) HttpContext.Current.Items["PortalSettings"];
+<font color= "blue"></font>
+<font color= "blue">        </font>object value = GetModule();
+<font color= "blue"></font><font color= "blue">        if </font>(value != null) {<font color= "blue"></font>
+<font color= "blue">            </font>
+<font color= "blue">            </font>ModuleSettings m = (ModuleSettings) value;
+<font color= "blue">            </font>
+<font color= "green">            // Construct Authorized User Roles String</font>
+<font color= "blue">            </font>String editRoles = "";
+<font color= "blue"></font>
+<font color= "blue">            </font>foreach(ListItem item in authEditRoles.Items) {
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">                if </font>(item.Selected == true) {<font color= "blue"></font>
+<font color= "blue">                    </font>editRoles = editRoles + item.Text + ";";
+<font color= "blue">                </font>}
+<font color= "blue">            </font>}
+<font color= "blue">            </font>
+<font color= "green">            // update module</font>
+<font color= "blue">            </font>AdminDB admin = new AdminDB();
+<font color= "blue">            </font>admin.UpdateModule(moduleId, m.ModuleOrder, m.PaneName, moduleTitle.Text, Int32.Parse(cacheTime.Text), editRoles, showMobile.Checked);
+<font color= "blue"></font>
+<font color= "green">            // Update Textbox Settings</font>
+<font color= "blue">            </font>moduleTitle.Text = m.ModuleTitle;
+<font color= "blue">            </font>cacheTime.Text = m.CacheTime.ToString();
+<font color= "blue"></font>
+<font color= "green">            // Populate checkbox list with all security roles for this portal</font>
+<font color= "green">            // and "check" the ones already configured for this module</font>
+<font color= "blue">            </font>SqlDataReader roles = admin.GetPortalRoles(portalSettings.PortalId);
+<font color= "blue"></font>
+<font color= "green">            // Clear existing items in checkboxlist</font>
+<font color= "blue">            </font>authEditRoles.Items.Clear();
+<font color= "blue"></font>
+<font color= "blue">            </font>ListItem allItem = new ListItem();
+<font color= "blue">            </font>allItem.Text = "All Users";
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">            if </font>(m.AuthorizedEditRoles.LastIndexOf("All Users") > -1) {<font color= "blue"></font>
+<font color= "blue">                </font>allItem.Selected = true;
+<font color= "blue">            </font>}
+<font color= "blue"></font>
+<font color= "blue">            </font>authEditRoles.Items.Add(allItem);
+<font color= "blue"></font>
+<font color= "blue">            </font>while(roles.Read()) {
+<font color= "blue"></font>
+<font color= "blue">                </font>ListItem item = new ListItem();
+<font color= "blue">                </font>item.Text = (String) roles["RoleName"];
+<font color= "blue">                </font>item.Value = roles["RoleID"].ToString();
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">                if </font>((m.AuthorizedEditRoles.LastIndexOf(item.Text)) > -1) {<font color= "blue"></font>
+<font color= "blue">                    </font>item.Selected = true;
+<font color= "blue">                </font>}
+<font color= "blue"></font>
+<font color= "blue">                </font>authEditRoles.Items.Add(item);
+<font color= "blue">            </font>}
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "green">        // Navigate back to admin page</font>
+<font color= "blue">        </font>Response.Redirect("TabLayout.aspx?tabid=" + tabId);
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The BindData helper method is used to populate a asp:datalist</font>
+<font color= "green">    // server control with the current "edit access" permissions</font>
+<font color= "green">    // set within the portal configuration system</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> BindData() {
+<font color= "blue"></font>
+<font color= "green">        // Obtain PortalSettings from Current Context</font>
+<font color= "blue">        </font>PortalSettings portalSettings = (PortalSettings) HttpContext.Current.Items["PortalSettings"];
+<font color= "blue"></font>
+<font color= "blue">        </font>object value = GetModule();
+<font color= "blue"></font><font color= "blue">        if </font>(value != null) {<font color= "blue"></font>
+<font color= "blue">            </font>
+<font color= "blue">            </font>ModuleSettings m = (ModuleSettings) value;
+<font color= "blue">            </font>
+<font color= "green">            // Update Textbox Settings</font>
+<font color= "blue">            </font>moduleTitle.Text = m.ModuleTitle;
+<font color= "blue">            </font>cacheTime.Text = m.CacheTime.ToString();
+<font color= "blue">            </font>showMobile.Checked = m.ShowMobile;
+<font color= "blue"></font>
+<font color= "green">            // Populate checkbox list with all security roles for this portal</font>
+<font color= "green">            // and "check" the ones already configured for this module</font>
+<font color= "blue">            </font>AdminDB admin = new AdminDB();
+<font color= "blue">            </font>SqlDataReader roles = admin.GetPortalRoles(portalSettings.PortalId);
+<font color= "blue"></font>
+<font color= "green">            // Clear existing items in checkboxlist</font>
+<font color= "blue">            </font>authEditRoles.Items.Clear();
+<font color= "blue"></font>
+<font color= "blue">            </font>ListItem allItem = new ListItem();
+<font color= "blue">            </font>allItem.Text = "All Users";
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">            if </font>(m.AuthorizedEditRoles.LastIndexOf("All Users") > -1) {<font color= "blue"></font>
+<font color= "blue">                </font>allItem.Selected = true;
+<font color= "blue">            </font>}
+<font color= "blue"></font>
+<font color= "blue">            </font>authEditRoles.Items.Add(allItem);
+<font color= "blue"></font>
+<font color= "blue">            </font>while(roles.Read()) {
+<font color= "blue"></font>
+<font color= "blue">                </font>ListItem item = new ListItem();
+<font color= "blue">                </font>item.Text = (String) roles["RoleName"];
+<font color= "blue">                </font>item.Value = roles["RoleID"].ToString();
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">                if </font>((m.AuthorizedEditRoles.LastIndexOf(item.Text)) > -1) {<font color= "blue"></font>
+<font color= "blue">                    </font>item.Selected = true;
+<font color= "blue">                </font>}
+<font color= "blue"></font>
+<font color= "blue">                </font>authEditRoles.Items.Add(item);
+<font color= "blue">            </font>}
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "blue">    </font>ModuleSettings GetModule() {
+<font color= "blue">    </font>
+<font color= "green">        // Obtain PortalSettings for this tab</font>
+<font color= "blue">        </font>PortalSettings portalSettings = (PortalSettings) HttpContext.Current.Items["PortalSettings"];
+<font color= "blue"></font>
+<font color= "green">        // Obtain selected module data</font>
+<font color= "blue">        </font>foreach (ModuleSettings _module in portalSettings.ActiveTab.Modules) {
+<font color= "blue">            </font>
+<font color= "blue"></font><font color= "blue">            if </font>(_module.ModuleId == moduleId)<font color= "blue"></font>
+<font color= "blue">                return</font> _module;
+<font color= "blue">        </font>}
+<font color= "blue">        return</font> null;
+<font color= "blue">    </font>}
+<font color= "blue">    </font>
+    <font color= "blue">&lt/</font><font color="maroon">script</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">head</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">link</font> rel="stylesheet" href='&lt%= Request.ApplicationPath + "/Portal.css" %<font color= "blue">&gt</font>' type="text/css" <font color= "blue">/&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">head</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">body</font> leftmargin="0" bottommargin="0" rightmargin="0" topmargin="0" marginheight="0" marginwidth="0"<font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">form</font> runat="server"<font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color="maroon">table</font> width="100%" cellspacing="0" cellpadding="0" border="0"<font color= "blue">&gt</font>
+                <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                    <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2"<font color= "blue">&gt</font>
+                        <font color= "blue">&lt</font><font color=blue>portal:Banner ShowTabs="false" runat="server" /</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                        <font color= "blue">&lt</font><font color="maroon">table</font> width="98%" cellspacing="0" cellpadding="4" border="0"<font color= "blue">&gt</font>
+                            <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font> width="150"<font color= "blue">&gt</font>
+                                    &nbsp;
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font> width="*"<font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color="maroon">table</font> cellpadding="2" cellspacing="1" border="0"<font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="4"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">table</font> width="100%" cellspacing="0" cellpadding="0"<font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                        <font color= "blue">&lt</font><font color="maroon">td</font> align="left" class="Head"<font color= "blue">&gt</font>
+                                                            Module Settings
+                                                        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                        <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                            <font color= "blue">&lt</font><font color="maroon">hr</font> noshade size="1pt"<font color= "blue">&gt</font>
+                                                        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> width="100" class="SubHead"<font color= "blue">&gt</font>
+                                                Module Name:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="3"<font color= "blue">&gt</font>
+                                                &nbsp;<font color= "blue">&lt</font><font color=blue>asp:Textbox id="moduleTitle" width="300" cssclass="NormalTextBox" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="SubHead"<font color= "blue">&gt</font>
+                                                Cache Timeout (seconds):
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="3"<font color= "blue">&gt</font>
+                                                &nbsp;<font color= "blue">&lt</font><font color=blue>asp:Textbox id="cacheTime" width="100" cssclass="NormalTextBox" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                &nbsp;
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="3"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">hr</font> noshade size="1pt"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="SubHead"<font color= "blue">&gt</font>
+                                                Roles that can edit content:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="3"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:CheckBoxList id="authEditRoles" RepeatColumns="2" Font-Names="Verdana,Arial" Font-Size="8pt" width="300" cellpadding="0" cellspacing="0" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                &nbsp;
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="3"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">hr</font> noshade size="1pt"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="SubHead" nowrap<font color= "blue">&gt</font>
+                                                Show to mobile users?:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="3"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:Checkbox id="showMobile" Font-Names="Verdana,Arial" Font-Size="8pt" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="4"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">hr</font> noshade size="1pt"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="4"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:LinkButton class="CommandButton" Text="Apply Module Changes" onclick="ApplyChanges_Click" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                        <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color="maroon">form</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">body</font><font color= "blue">&gt</font>
+<font color= "blue">&lt/</font><font color="maroon">html</font><font color= "blue">&gt</font>
+</pre>

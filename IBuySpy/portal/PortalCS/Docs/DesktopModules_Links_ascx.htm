@@ -1,0 +1,47 @@
+<html><head><link rel=stylesheet href=style.css></head><body><div class=SourcePanel style='font-size:12'><pre style='background-color:white'>
+&lt%@ Control language="C#" Inherits="ASPNetPortal.PortalModuleControl" %<font color= "blue">&gt</font>
+&lt%@ Register TagPrefix="Portal" TagName="Title" Src="~/DesktopModuleTitle.ascx"%<font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">script</font> runat="server"<font color= "blue">&gt</font>
+<font color= "blue"></font>
+<font color= "blue">    </font>String linkImage = "";
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The Page_Load event handler on this User Control is used to</font>
+<font color= "green">    // obtain a DataReader of link information from the Links</font>
+<font color= "green">    // table, and then databind the results to a templated DataList</font>
+<font color= "green">    // server control.  It uses the ASPNetPortal.LinkDB()</font>
+<font color= "green">    // data component to encapsulate all data functionality.</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> Page_Load(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Set the link image type</font>
+<font color= "blue"></font><font color= "blue">        if </font>(IsEditable) {<font color= "blue"></font>
+<font color= "blue">            </font>linkImage = "~/images/edit.gif";
+<font color= "blue">        </font>}
+<font color= "blue"></font><font color= "blue">        else </font>{<font color= "blue"></font>
+<font color= "blue">            </font>linkImage = "~/images/navlink.gif";
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "green">        // Obtain links information from the Links table</font>
+<font color= "green">        // and bind to the datalist control</font>
+<font color= "blue">        </font>ASPNetPortal.LinkDB links = new ASPNetPortal.LinkDB();
+<font color= "blue"></font>
+<font color= "blue">        </font>myDataList.DataSource = links.GetLinks(ModuleId);
+<font color= "blue">        </font>myDataList.DataBind();
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "blue">&lt/</font><font color="maroon">script</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color=blue>portal:title EditUrl="~/DesktopModules/EditLinks.aspx" EditText="Add Link" runat="server" /</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color=blue>asp:DataList id="myDataList" CellPadding="4" Width="100%" runat="server"</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">ItemTemplate</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">span</font> class="Normal"<font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color=blue>asp:HyperLink id="editLink" ImageUrl="&lt%# linkImage %<font color= "blue">&gt</font>" NavigateUrl='&lt%# "~/DesktopModules/EditLinks.aspx?ItemID=" + DataBinder.Eval(Container.DataItem,"ItemID") + "&mid=" + ModuleId %<font color= "blue">&gt</font>' runat="server" /</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color=blue>asp:HyperLink Text='&lt%# DataBinder.Eval(Container.DataItem,"Title") %<font color= "blue">&gt</font>' NavigateUrl='&lt%# DataBinder.Eval(Container.DataItem,"Url") %<font color= "blue">&gt</font>' ToolTip='&lt%# DataBinder.Eval(Container.DataItem,"Description") %<font color= "blue">&gt</font>' Target="_new" runat="server" /</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color="maroon">span</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">ItemTemplate</font><font color= "blue">&gt</font>
+<font color= "blue">&lt/</font><font color=blue>asp:DataList</font><font color= "blue">&gt</font>
+</pre>

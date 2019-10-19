@@ -1,0 +1,42 @@
+<html><head><link rel=stylesheet href=style.css></head><body><div class=SourcePanel style='font-size:12'><pre style='background-color:white'>
+&lt%@ Control language="C#" Inherits="ASPNetPortal.PortalModuleControl" %<font color= "blue">&gt</font>
+&lt%@ Register TagPrefix="Portal" TagName="Title" Src="~/DesktopModuleTitle.ascx"%<font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">script</font> runat="server"<font color= "blue">&gt</font>
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The Page_Load event handler on this User Control is used to</font>
+<font color= "green">    // obtain a DataReader of contact information from the Contacts</font>
+<font color= "green">    // table, and then databind the results to a DataGrid</font>
+<font color= "green">    // server control.  It uses the ASPNetPortal.ContactsDB()</font>
+<font color= "green">    // data component to encapsulate all data functionality.</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> Page_Load(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Obtain contact information from Contacts table</font>
+<font color= "green">        // and bind to the DataGrid Control</font>
+<font color= "blue">        </font>ASPNetPortal.ContactsDB contacts = new ASPNetPortal.ContactsDB();
+<font color= "blue"></font>
+<font color= "blue">        </font>myDataGrid.DataSource = contacts.GetContacts(ModuleId);
+<font color= "blue">        </font>myDataGrid.DataBind();
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "blue">&lt/</font><font color="maroon">script</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color=blue>portal:title EditText="Add New Contact" EditUrl="~/DesktopModules/EditContacts.aspx" runat="server" /</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color=blue>asp:datagrid id="myDataGrid" Border="0" width="100%" AutoGenerateColumns="false" EnableViewState="false" runat="server"</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">Columns</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color=blue>asp:TemplateColumn</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color="maroon">ItemTemplate</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt</font><font color=blue>asp:HyperLink ImageUrl="~/images/edit.gif" NavigateUrl='&lt%# "~/DesktopModules/EditContacts.aspx?ItemID=" + DataBinder.Eval(Container.DataItem,"ItemID") + "&mid=" + ModuleId %<font color= "blue">&gt</font>' Visible="&lt%# IsEditable %<font color= "blue">&gt</font>" runat="server" /</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt/</font><font color="maroon">ItemTemplate</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color=blue>asp:TemplateColumn</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color=blue>asp:BoundColumn HeaderText="Name" DataField="Name" ItemStyle-CssClass="Normal" HeaderStyle-Cssclass="NormalBold" /</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color=blue>asp:BoundColumn HeaderText="Role" DataField="Role" ItemStyle-CssClass="Normal" HeaderStyle-Cssclass="NormalBold" /</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color=blue>asp:HyperLinkColumn HeaderText="Email" DataTextField="Email" DataNavigateUrlField="Email" DataNavigateUrlFormatString="mailto:{0}" ItemStyle-CssClass="Normal" HeaderStyle-Cssclass="NormalBold" /</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color=blue>asp:BoundColumn HeaderText="Contact 1" DataField="Contact1" ItemStyle-CssClass="Normal" HeaderStyle-Cssclass="NormalBold" /</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color=blue>asp:BoundColumn HeaderText="Contact 2" DataField="Contact2" ItemStyle-CssClass="Normal" HeaderStyle-Cssclass="NormalBold" /</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">Columns</font><font color= "blue">&gt</font>
+<font color= "blue">&lt/</font><font color=blue>asp:datagrid</font><font color= "blue">&gt</font>
+</pre>

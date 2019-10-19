@@ -1,0 +1,289 @@
+<html><head><link rel=stylesheet href=style.css></head><body><div class=SourcePanel style='font-size:12'><pre style='background-color:white'>
+&lt%@ Import Namespace="ASPNetPortal" %<font color= "blue">&gt</font>
+&lt%@ Import Namespace="System.Data.SqlClient" %<font color= "blue">&gt</font>
+&lt%@ Import Namespace="System.IO" %<font color= "blue">&gt</font>
+&lt%@ Register TagPrefix="portal" TagName="Banner" Src="~/DesktopPortalBanner.ascx" %<font color= "blue">&gt</font>
+&lt%@ Page Language="C#" %<font color= "blue">&gt</font>
+
+<font color= "blue">&lt</font><font color="maroon">HTML</font><font color= "blue">&gt</font>
+  <font color= "blue">&lt</font><font color="maroon">HEAD</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">script</font> runat="server"<font color= "blue">&gt</font>
+<font color= "blue"></font>
+<font color= "blue">    </font>int itemId = 0;
+<font color= "blue">    </font>int moduleId = 0;
+<font color= "blue"></font>
+<font color= "green">    //****************************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The Page_Load event on this Page is used to obtain the ModuleId</font>
+<font color= "green">    // and ItemId of the document to edit.</font>
+<font color= "green">    //</font>
+<font color= "green">    // It then uses the ASPNetPortal.DocumentDB() data component</font>
+<font color= "green">    // to populate the page's edit controls with the document details.</font>
+<font color= "green">    //</font>
+<font color= "green">    //****************************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> Page_Load(Object Sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Determine ModuleId of Announcements Portal Module</font>
+<font color= "blue">        </font>moduleId = Int32.Parse(Request.Params["Mid"]);
+<font color= "blue"></font>
+<font color= "green">        // Verify that the current user has access to edit this module</font>
+<font color= "blue"></font><font color= "blue">        if </font>(PortalSecurity.HasEditPermissions(moduleId) == false) {<font color= "blue"></font>
+<font color= "blue">            </font>Response.Redirect("~/Admin/EditAccessDenied.aspx");
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "green">        // Determine ItemId of Document to Update</font>
+<font color= "blue"></font><font color= "blue">        if </font>(Request.Params["ItemId"] != null) {<font color= "blue"></font>
+<font color= "blue">            </font>itemId = Int32.Parse(Request.Params["ItemId"]);
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "green">        // If the page is being requested the first time, determine if an</font>
+<font color= "green">        // document itemId value is specified, and if so populate page</font>
+<font color= "green">        // contents with the document details</font>
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">        if </font>(Page.IsPostBack == false) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">            if </font>(itemId != 0) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "green">                // Obtain a single row of document information</font>
+<font color= "blue">                </font>ASPNetPortal.DocumentDB documents = new ASPNetPortal.DocumentDB();
+<font color= "blue">                </font>SqlDataReader dr = documents.GetSingleDocument(itemId);
+<font color= "blue">                </font>
+<font color= "green">                // Load first row into Datareader</font>
+<font color= "blue">                </font>dr.Read();
+<font color= "blue"></font>
+<font color= "blue">                </font>NameField.Text = (String) dr["FileFriendlyName"];
+<font color= "blue">                </font>PathField.Text = (String) dr["FileNameUrl"];
+<font color= "blue">                </font>CategoryField.Text = (String) dr["Category"];
+<font color= "blue">                </font>CreatedBy.Text = (String) dr["CreatedByUser"];
+<font color= "blue">                </font>CreatedDate.Text = ((DateTime) dr["CreatedDate"]).ToShortDateString();
+<font color= "blue">                </font>
+<font color= "blue">                </font>dr.Close();
+<font color= "blue">            </font>}
+<font color= "blue"></font>
+<font color= "green">            // Store URL Referrer to return to portal</font>
+<font color= "blue">            </font>ViewState["UrlReferrer"] = Request.UrlReferrer.ToString();
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //****************************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The UpdateBtn_Click event handler on this Page is used to either</font>
+<font color= "green">    // create or update an document.  It  uses the ASPNetPortal.DocumentDB()</font>
+<font color= "green">    // data component to encapsulate all data functionality.</font>
+<font color= "green">    //</font>
+<font color= "green">    //****************************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> UpdateBtn_Click(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Only Update if Input Data is Valid</font>
+<font color= "blue"></font><font color= "blue">        if </font>(Page.IsValid == true) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "green">            // Create an instance of the Document DB component</font>
+<font color= "blue">            </font>ASPNetPortal.DocumentDB documents = new ASPNetPortal.DocumentDB();
+<font color= "blue"></font>
+<font color= "green">            // Determine whether a file was uploaded</font>
+<font color= "blue">            </font>
+<font color= "blue"></font><font color= "blue">            if </font>((storeInDatabase.Checked == true) && (FileUpload.PostedFile != null)) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "green">                // for web farm support</font>
+<font color= "blue">                </font>int length = (int) FileUpload.PostedFile.InputStream.Length;
+<font color= "blue">                </font>String contentType = FileUpload.PostedFile.ContentType;
+<font color= "blue">                </font>byte[] content = new byte[length];
+<font color= "blue"></font>
+<font color= "blue">                </font>FileUpload.PostedFile.InputStream.Read(content, 0, length);
+<font color= "blue">        </font>
+<font color= "green">                // Update the document within the Documents table</font>
+<font color= "blue">                </font>documents.UpdateDocument( moduleId, itemId, Context.User.Identity.Name, NameField.Text, PathField.Text, CategoryField.Text, content, length, contentType );        
+<font color= "blue">            </font>}
+<font color= "blue"></font><font color= "blue">            else </font>{<font color= "blue"></font>
+<font color= "blue">            </font>
+<font color= "blue"></font><font color= "blue">                if </font>((Upload.Checked == true) && (FileUpload.PostedFile != null)) {<font color= "blue"></font>
+<font color= "blue">                </font>
+<font color= "green">                    // Calculate virtualPath of the newly uploaded file</font>
+<font color= "blue">                    </font>String virtualPath = "~/uploads/" + Path.GetFileName(FileUpload.PostedFile.FileName);
+<font color= "blue"></font>
+<font color= "green">                    // Calculate physical path of the newly uploaded file</font>
+<font color= "blue">                    </font>String phyiscalPath = Server.MapPath(virtualPath);
+<font color= "blue"></font>
+<font color= "green">                    // Save file to uploads directory</font>
+<font color= "blue">                    </font>FileUpload.PostedFile.SaveAs(phyiscalPath);
+<font color= "blue"></font>
+<font color= "green">                    // Update PathFile with uploaded virtual file location</font>
+<font color= "blue">                    </font>PathField.Text = virtualPath;
+<font color= "blue">                </font>}
+<font color= "blue">                </font>documents.UpdateDocument( moduleId, itemId, Context.User.Identity.Name, NameField.Text, PathField.Text, CategoryField.Text, new byte[0], 0, "" );
+<font color= "blue">            </font>}
+<font color= "blue"></font>
+<font color= "green">            // Redirect back to the portal home page</font>
+<font color= "blue">            </font>Response.Redirect((String) ViewState["UrlReferrer"]);
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue">    </font>
+<font color= "green">    //****************************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The DeleteBtn_Click event handler on this Page is used to delete an</font>
+<font color= "green">    // a document.  It  uses the ASPNetPortal.DocumentsDB()</font>
+<font color= "green">    // data component to encapsulate all data functionality.</font>
+<font color= "green">    //</font>
+<font color= "green">    //****************************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> DeleteBtn_Click(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Only attempt to delete the item if it is an existing item</font>
+<font color= "green">        // (new items will have "ItemId" of 0)</font>
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">        if </font>(itemId != 0) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "blue">            </font>ASPNetPortal.DocumentDB documents = new ASPNetPortal.DocumentDB();
+<font color= "blue">            </font>documents.DeleteDocument(itemId);
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "green">        // Redirect back to the portal home page</font>
+<font color= "blue">        </font>Response.Redirect((String) ViewState["UrlReferrer"]);
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //****************************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The CancelBtn_Click event handler on this Page is used to cancel</font>
+<font color= "green">    // out of the page, and return the user back to the portal home</font>
+<font color= "green">    // page.</font>
+<font color= "green">    //</font>
+<font color= "green">    //****************************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> CancelBtn_Click(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Redirect back to the portal home page</font>
+<font color= "blue">        </font>Response.Redirect((String) ViewState["UrlReferrer"]);
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "blue">&lt/</font><font color="maroon">script</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">link</font> rel="stylesheet" href='&lt%= Request.ApplicationPath + "/Portal.css" %<font color= "blue">&gt</font>' type="text/css" <font color= "blue">&gt</font>
+  <font color= "blue">&lt/</font><font color="maroon">HEAD</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">body</font> leftmargin="0" bottommargin="0" rightmargin="0" topmargin="0" marginheight="0" marginwidth="0"<font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">form</font> enctype="multipart/form-data" runat="server"<font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color="maroon">table</font> width="100%" cellspacing="0" cellpadding="0" border="0"<font color= "blue">&gt</font>
+                <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                    <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2"<font color= "blue">&gt</font>
+                        <font color= "blue">&lt</font><font color=blue>portal:Banner id="SiteHeader" runat="server" /</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                        <font color= "blue">&lt</font><font color="maroon">table</font> width="98%" cellspacing="0" cellpadding="4" border="0"<font color= "blue">&gt</font>
+                            <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font> width="150"<font color= "blue">&gt</font>
+                                    &nbsp;
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color="maroon">table</font> width="500" cellspacing="0" cellpadding="0"<font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> align="left" class="Head"<font color= "blue">&gt</font>
+                                                Document Details
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">hr</font> noshade size="1"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color="maroon">table</font> width="726" cellspacing="0" cellpadding="0" border="0"<font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> width="100" class="SubHead"<font color= "blue">&gt</font>
+                                                Name:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                &nbsp;
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:TextBox id="NameField" cssclass="NormalTextBox" width="353" Columns="28" maxlength="150" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> width="25" rowspan="6"<font color= "blue">&gt</font>
+                                                &nbsp;
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="Normal" width="250"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:RequiredFieldValidator Display="Static" runat="server" ErrorMessage="You Must Enter a Valid Name" ControlToValidate="NameField" id=RequiredFieldValidator1 /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="SubHead"<font color= "blue">&gt</font>
+                                                Category:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                &nbsp;
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:TextBox id="CategoryField" cssclass="NormalTextBox" width="353" Columns="28" maxlength="50" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                &nbsp;
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">hr</font> noshade size="1" width="100%"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> width="100" class="SubHead"<font color= "blue">&gt</font>
+                                                URL to Browse:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                &nbsp;
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:textbox id="PathField" cssclass="NormalTextBox" width="353" Columns="28" maxlength="250" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="SubHead"<font color= "blue">&gt</font>
+                                                 or 
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2"<font color= "blue">&gt</font>
+                                                &nbsp;
+                                                <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> nowrap class="SubHead"<font color= "blue">&gt</font>
+                                                Upload to Web Server:&nbsp;
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                &nbsp;
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:CheckBox id="Upload" Cssclass="Normal" Text="Upload document to server" runat="server" /</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:CheckBox id="storeInDatabase" Cssclass="Normal" Text="Store in database (web farm support)" runat="server" /</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">input</font> type="file" id="FileUpload" width="300" style="WIDTH:353px;FONT-FAMILY:verdana" runat="server" <font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color="maroon">p</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color=blue>asp:LinkButton id="updateButton" Text="Update" runat="server" class="CommandButton" BorderStyle="none" OnClick="UpdateBtn_Click" /</font><font color= "blue">&gt</font>
+                                        &nbsp;
+                                        <font color= "blue">&lt</font><font color=blue>asp:LinkButton id="cancelButton" Text="Cancel" CausesValidation="False" runat="server" class="CommandButton" BorderStyle="none" OnClick="CancelBtn_Click" /</font><font color= "blue">&gt</font>
+                                        &nbsp;
+                                        <font color= "blue">&lt</font><font color=blue>asp:LinkButton id="deleteButton" Text="Delete this item" CausesValidation="False" runat="server" class="CommandButton" BorderStyle="none" OnClick="DeleteBtn_Click" /</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">hr</font> noshade size="1" width="500"<font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">span</font> class="Normal"<font color= "blue">&gt</font>Created by
+                                            <font color= "blue">&lt</font><font color=blue>asp:label id="CreatedBy" runat="server" /</font><font color= "blue">&gt</font>
+                                            on
+                                            <font color= "blue">&lt</font><font color=blue>asp:label id="CreatedDate" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">span</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color="maroon">P</font><font color= "blue">&gt</font><font color= "blue">&lt/</font><font color="maroon">P</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                        <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color="maroon">form</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">body</font><font color= "blue">&gt</font>
+<font color= "blue">&lt/</font><font color="maroon">HTML</font><font color= "blue">&gt</font>
+</pre>

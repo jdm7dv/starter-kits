@@ -1,0 +1,162 @@
+<html><head><link rel=stylesheet href=style.css></head><body><div class=SourcePanel style='font-size:12'><pre style='background-color:white'>
+&lt%@ Page Language="C#" %<font color= "blue">&gt</font>
+&lt%@ Register TagPrefix="portal" TagName="Banner" Src="~/DesktopPortalBanner.ascx" %<font color= "blue">&gt</font>
+&lt%@ Import Namespace="System.Data" %<font color= "blue">&gt</font>
+&lt%@ Import Namespace="ASPNetPortal" %<font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">script</font> runat="server"<font color= "blue">&gt</font>
+<font color= "blue"></font>
+<font color= "blue">    </font>int moduleId = 0;
+<font color= "blue"></font>
+<font color= "green">    //****************************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The Page_Load event on this Page is used to obtain the ModuleId</font>
+<font color= "green">    // of the image module to edit.</font>
+<font color= "green">    //</font>
+<font color= "green">    // It then uses the ASP.NET configuration system to populate the page's</font>
+<font color= "green">    // edit controls with the image details.</font>
+<font color= "green">    //</font>
+<font color= "green">    //****************************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> Page_Load(Object Sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Determine ModuleId of Announcements Portal Module</font>
+<font color= "blue">        </font>moduleId = Int32.Parse(Request.Params["Mid"]);
+<font color= "blue"></font>
+<font color= "green">        // Verify that the current user has access to edit this module</font>
+<font color= "blue"></font><font color= "blue">        if </font>(PortalSecurity.HasEditPermissions(moduleId) == false) {<font color= "blue"></font>
+<font color= "blue">            </font>Response.Redirect("~/Admin/EditAccessDenied.aspx");
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">        if </font>(Page.IsPostBack == false) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">            if </font>(moduleId > 0) {<font color= "blue"></font>
+<font color= "blue">            </font>
+<font color= "blue">                </font>Hashtable settings;
+<font color= "blue">                </font>
+<font color= "green">                // Get settings from the database</font>
+<font color= "blue">                </font>settings = PortalSettings.GetModuleSettings(moduleId);
+<font color= "blue">                </font>
+<font color= "blue">                </font>Src.Text = (String) settings["src"];
+<font color= "blue">                </font>Width.Text = (String) settings["width"];
+<font color= "blue">                </font>Height.Text = (String) settings["height"];
+<font color= "blue">            </font>}
+<font color= "blue">            </font>
+<font color= "green">            // Store URL Referrer to return to portal</font>
+<font color= "blue">            </font>ViewState["UrlReferrer"] = Request.UrlReferrer.ToString();
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //****************************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The UpdateBtn_Click event handler on this Page is used to save</font>
+<font color= "green">    // the settings to the ModuleSettings database table.  It  uses the </font>
+<font color= "green">    // ASPNetPortal.AdminDB() data component to encapsulate the data </font>
+<font color= "green">    // access functionality.</font>
+<font color= "green">    //</font>
+<font color= "green">    //****************************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> UpdateBtn_Click(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Update settings in the database</font>
+<font color= "blue">        </font>AdminDB admin = new AdminDB();
+<font color= "blue">        </font>
+<font color= "blue">        </font>admin.UpdateModuleSetting(moduleId, "src", Src.Text);
+<font color= "blue">        </font>admin.UpdateModuleSetting(moduleId, "height", Height.Text);
+<font color= "blue">        </font>admin.UpdateModuleSetting(moduleId, "width", Width.Text);
+<font color= "blue"></font>
+<font color= "green">        // Redirect back to the portal home page</font>
+<font color= "blue">        </font>Response.Redirect((String) ViewState["UrlReferrer"]);
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //****************************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The CancelBtn_Click event handler on this Page is used to cancel</font>
+<font color= "green">    // out of the page, and return the user back to the portal home</font>
+<font color= "green">    // page.</font>
+<font color= "green">    //</font>
+<font color= "green">    //****************************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> CancelBtn_Click(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Redirect back to the portal home page</font>
+<font color= "blue">        </font>Response.Redirect((String) ViewState["UrlReferrer"]);
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "blue">&lt/</font><font color="maroon">script</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">html</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">head</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">link</font> rel="stylesheet" href='&lt%= Request.ApplicationPath + "/Portal.css" %<font color= "blue">&gt</font>' type="text/css" <font color= "blue">/&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">head</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">body</font> leftmargin="0" bottommargin="0" rightmargin="0" topmargin="0" marginheight="0" marginwidth="0"<font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">form</font> runat="server"<font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color="maroon">table</font> width="100%" cellspacing="0" cellpadding="0" border="0"<font color= "blue">&gt</font>
+                <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                    <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2"<font color= "blue">&gt</font>
+                        <font color= "blue">&lt</font><font color=blue>portal:Banner id="SiteHeader" runat="server" /</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                        <font color= "blue">&lt</font><font color="maroon">table</font> width="98%" cellspacing="0" cellpadding="4" border="0"<font color= "blue">&gt</font>
+                            <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font> width="150"<font color= "blue">&gt</font>
+                                    &nbsp;
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font> width="*"<font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color="maroon">table</font> width="500" cellspacing="0" cellpadding="0"<font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> align="left" class="Head"<font color= "blue">&gt</font>
+                                                Image Settings
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">hr</font> noshade size="1pt"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color="maroon">table</font> width="500" cellspacing="0" cellpadding="0"<font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> width="100" class="SubHead"<font color= "blue">&gt</font>
+                                                Src Location:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> rowspan="3"<font color= "blue">&gt</font>
+                                                &nbsp;
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="Normal"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:TextBox id="Src" cssclass="NormalTextBox" width="390" Columns="30" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="SubHead"<font color= "blue">&gt</font>
+                                                Image Width:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:TextBox id="Width" cssclass="NormalTextBox" width="390" Columns="30" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="SubHead"<font color= "blue">&gt</font>
+                                                Image Height:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:TextBox id="Height" cssclass="NormalTextBox" width="390" Columns="30" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color="maroon">p</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color=blue>asp:LinkButton id="updateButton" Text="Update" runat="server" class="CommandButton" BorderStyle="none" OnClick="UpdateBtn_Click" /</font><font color= "blue">&gt</font>
+                                        &nbsp;
+                                        <font color= "blue">&lt</font><font color=blue>asp:LinkButton id="cancelButton" Text="Cancel" CausesValidation="False" runat="server" class="CommandButton" BorderStyle="none" OnClick="CancelBtn_Click" /</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt/</font><font color="maroon">p</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                        <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color="maroon">form</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">body</font><font color= "blue">&gt</font>
+<font color= "blue">&lt/</font><font color="maroon">html</font><font color= "blue">&gt</font>
+</pre>

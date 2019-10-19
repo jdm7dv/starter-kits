@@ -1,0 +1,1 @@
+csc /t:library /out:..\bin\portal.dll *.cs /r:System.web.dll /r:System.data.dll /r:system.dll /r:System.Web.Mobile.dll

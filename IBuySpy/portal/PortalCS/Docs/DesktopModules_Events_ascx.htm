@@ -1,0 +1,45 @@
+<html><head><link rel=stylesheet href=style.css></head><body><div class=SourcePanel style='font-size:12'><pre style='background-color:white'>
+&lt%@ Control language="C#" Inherits="ASPNetPortal.PortalModuleControl" %<font color= "blue">&gt</font>
+&lt%@ Register TagPrefix="Portal" TagName="Title" Src="~/DesktopModuleTitle.ascx"%<font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">script</font> runat="server"<font color= "blue">&gt</font>
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The Page_Load event handler on this User Control is used to</font>
+<font color= "green">    // obtain a DataReader of event information from the Events</font>
+<font color= "green">    // table, and then databind the results to a templated DataList</font>
+<font color= "green">    // server control.  It uses the ASPNetPortal.EventDB()</font>
+<font color= "green">    // data component to encapsulate all data functionality.</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> Page_Load(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Obtain the list of events from the Events table</font>
+<font color= "green">        // and bind to the DataList Control</font>
+<font color= "blue">        </font>ASPNetPortal.EventsDB events = new ASPNetPortal.EventsDB();
+<font color= "blue"></font>
+<font color= "blue">        </font>myDataList.DataSource = events.GetEvents(ModuleId);
+<font color= "blue">        </font>myDataList.DataBind();
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "blue">&lt/</font><font color="maroon">script</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color=blue>portal:title EditText="Add New Event" EditUrl="~/DesktopModules/EditEvents.aspx" runat="server" /</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color=blue>asp:DataList id="myDataList" CellPadding="4" Width="98%" EnableViewState="false" runat="server"</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">ItemTemplate</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">span</font> class="ItemTitle"<font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color=blue>asp:HyperLink id="editLink" ImageUrl="~/images/edit.gif" NavigateUrl='&lt%# "~/DesktopModules/EditEvents.aspx?ItemID=" + DataBinder.Eval(Container.DataItem,"ItemID") + "&mid=" + ModuleId %<font color= "blue">&gt</font>' Visible="&lt%# IsEditable %<font color= "blue">&gt</font>" runat="server" /</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color=blue>asp:Label Text='&lt%# DataBinder.Eval(Container.DataItem,"Title") %<font color= "blue">&gt</font>' runat="server" /</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color="maroon">span</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">span</font> class="Normal"<font color= "blue">&gt</font><font color= "blue">&lt</font><font color="maroon">i</font><font color= "blue">&gt</font>
+                &lt%# DataBinder.Eval(Container.DataItem,"WhereWhen") %<font color= "blue">&gt</font>
+            <font color= "blue">&lt/</font><font color="maroon">i</font><font color= "blue">&gt</font><font color= "blue">&lt/</font><font color="maroon">span</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">span</font> class="Normal"<font color= "blue">&gt</font>
+            &lt%# DataBinder.Eval(Container.DataItem,"Description") %<font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color="maroon">span</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">ItemTemplate</font><font color= "blue">&gt</font>
+<font color= "blue">&lt/</font><font color=blue>asp:DataList</font><font color= "blue">&gt</font>
+</pre>

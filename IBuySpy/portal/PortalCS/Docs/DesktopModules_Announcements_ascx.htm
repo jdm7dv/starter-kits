@@ -1,0 +1,45 @@
+<html><head><link rel=stylesheet href=style.css></head><body><div class=SourcePanel style='font-size:12'><pre style='background-color:white'>
+&lt%@ Control Language="C#" Inherits="ASPNetPortal.PortalModuleControl" %<font color= "blue">&gt</font>
+&lt%@ Register TagPrefix="Portal" TagName="Title" Src="~/DesktopModuleTitle.ascx"%<font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">script</font> runat="server"<font color= "blue">&gt</font>
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The Page_Load event handler on this User Control is used to</font>
+<font color= "green">    // obtain a DataSet of announcement information from the Announcements</font>
+<font color= "green">    // table, and then databind the results to a templated DataList</font>
+<font color= "green">    // server control.  It uses the ASPNetPortal.AnnouncementsDB()</font>
+<font color= "green">    // data component to encapsulate all data functionality.</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> Page_Load(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Obtain announcement information from Announcements table</font>
+<font color= "green">        // and bind to the datalist control</font>
+<font color= "blue">        </font>ASPNetPortal.AnnouncementsDB announcements = new ASPNetPortal.AnnouncementsDB();
+<font color= "blue"></font>
+<font color= "green">        // DataBind Announcements to DataList Control</font>
+<font color= "blue">        </font>myDataList.DataSource = announcements.GetAnnouncements(ModuleId);
+<font color= "blue">        </font>myDataList.DataBind();
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "blue">&lt/</font><font color="maroon">script</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color=blue>portal:title EditText="Add New Announcement" EditUrl="~/DesktopModules/EditAnnouncements.aspx" runat="server" /</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color=blue>asp:DataList id="myDataList" CellPadding="4" Width="98%" EnableViewState="false" runat="server"</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">ItemTemplate</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color=blue>asp:HyperLink id="editLink" ImageUrl="~/images/edit.gif" NavigateUrl='&lt%# "~/DesktopModules/EditAnnouncements.aspx?ItemID=" + DataBinder.Eval(Container.DataItem,"ItemID") + "&mid=" + ModuleId %<font color= "blue">&gt</font>' Visible="&lt%# IsEditable %<font color= "blue">&gt</font>" runat="server" /</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">span</font> class="ItemTitle"<font color= "blue">&gt</font>
+            &lt%# DataBinder.Eval(Container.DataItem,"Title") %<font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color="maroon">span</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">span</font> class="Normal"<font color= "blue">&gt</font>
+            &lt%# DataBinder.Eval(Container.DataItem,"Description") %<font color= "blue">&gt</font>
+            &nbsp;
+            <font color= "blue">&lt</font><font color=blue>asp:HyperLink id="moreLink" NavigateUrl='&lt%# DataBinder.Eval(Container.DataItem,"MoreLink") %<font color= "blue">&gt</font>' Visible='&lt%# DataBinder.Eval(Container.DataItem,"MoreLink") != String.Empty %<font color= "blue">&gt</font>' runat="server"</font><font color= "blue">&gt</font>
+                read more...<font color= "blue">&lt/</font><font color=blue>asp:HyperLink</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color="maroon">span</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">ItemTemplate</font><font color= "blue">&gt</font>
+<font color= "blue">&lt/</font><font color=blue>asp:DataList</font><font color= "blue">&gt</font>
+</pre>

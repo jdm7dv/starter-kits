@@ -1,0 +1,290 @@
+<html><head><link rel=stylesheet href=style.css></head><body><div class=SourcePanel style='font-size:12'><pre style='background-color:white'>
+&lt%@ Page language="C#" %<font color= "blue">&gt</font>
+&lt%@ Register TagPrefix="portal" TagName="Banner" Src="~/DesktopPortalBanner.ascx" %<font color= "blue">&gt</font>
+&lt%@ Import Namespace="ASPNetPortal" %<font color= "blue">&gt</font>
+&lt%@ Import Namespace="System.Data.SqlClient" %<font color= "blue">&gt</font>
+<font color= "green">&lt%--
+    The SecurityRoles.aspx page is used to create and edit security roles within
+    the Portal application.
+--%<font color= "blue">&gt</font></font>
+<font color= "blue">&lt</font><font color="maroon">script</font> runat="server"<font color= "blue">&gt</font>
+<font color= "blue"></font>
+<font color= "blue">    </font>int    userId   = -1;
+<font color= "blue">    </font>String userName = "";
+<font color= "blue">    </font>int tabIndex = 0;
+<font color= "blue">    </font>int tabId = 0;
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The Page_Load server event handler on this page is used</font>
+<font color= "green">    // to populate the role information for the page</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> Page_Load(Object Sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Verify that the current user has access to access this page</font>
+<font color= "blue"></font><font color= "blue">        if </font>(PortalSecurity.IsInRoles("Admins") == false) {<font color= "blue"></font>
+<font color= "blue">            </font>Response.Redirect("~/Admin/EditAccessDenied.aspx");
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "green">        // Calculate userid</font>
+<font color= "blue"></font><font color= "blue">        if </font>(Request.Params["userid"] != null) {<font color= "blue"></font>
+<font color= "blue">            </font>userId = Int32.Parse(Request.Params["userid"]);
+<font color= "blue">        </font>}
+<font color= "blue"></font><font color= "blue">        if </font>(Request.Params["username"] != null) {<font color= "blue"></font>
+<font color= "blue">            </font>userName = (String)Request.Params["username"];
+<font color= "blue">        </font>}
+<font color= "blue"></font><font color= "blue">        if </font>(Request.Params["tabid"] != null) {<font color= "blue"></font>
+<font color= "blue">            </font>tabId = Int32.Parse(Request.Params["tabid"]);
+<font color= "blue">        </font>}
+<font color= "blue"></font><font color= "blue">        if </font>(Request.Params["tabindex"] != null) {<font color= "blue"></font>
+<font color= "blue">            </font>tabIndex = Int32.Parse(Request.Params["tabindex"]);
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "green">        // If this is the first visit to the page, bind the role data to the datalist</font>
+<font color= "blue"></font><font color= "blue">        if </font>(Page.IsPostBack == false) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "green">            // new user?</font>
+<font color= "blue"></font><font color= "blue">            if </font>(userName == "") {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "blue">                </font>UsersDB users = new UsersDB();
+<font color= "blue"></font>
+<font color= "green">                // make a unique new user record</font>
+<font color= "blue">                </font>int uid = -1;
+<font color= "blue">                </font>int i = 0;
+<font color= "blue"></font>
+<font color= "blue">                while</font> (uid == -1) {
+<font color= "blue"></font>
+<font color= "blue">                    </font>String friendlyName = "New User created " + DateTime.Now.ToString();
+<font color= "blue">                    </font>userName = "New User" + i.ToString();
+<font color= "blue">                    </font>uid = users.AddUser(friendlyName, userName, "");
+<font color= "blue">                    </font>i++;
+<font color= "blue">                </font>}
+<font color= "blue"></font>
+<font color= "green">                // redirect to this page with the corrected querystring args</font>
+<font color= "blue">                </font>Response.Redirect("~/Admin/ManageUsers.aspx?userId=" + uid + "&username=" + userName + "&tabindex=" + tabIndex + "&tabid=" + tabId);
+<font color= "blue">            </font>}
+<font color= "blue"></font>
+<font color= "blue">            </font>BindData();
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The Save_Click server event handler on this page is used</font>
+<font color= "green">    // to save the current security settings to the configuration system</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> Save_Click(Object Sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Obtain PortalSettings from Current Context</font>
+<font color= "blue">        </font>PortalSettings portalSettings = (PortalSettings) Context.Items["PortalSettings"];
+<font color= "blue"></font>
+<font color= "green">        // Navigate back to admin page</font>
+<font color= "blue">        </font>Response.Redirect("~/DesktopDefault.aspx?tabindex=" + tabIndex + "&tabid=" + tabId);
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The AddRole_Click server event handler is used to add</font>
+<font color= "green">    // the user to this security role</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> AddRole_Click(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "blue">        </font>int roleId;
+<font color= "blue"></font>
+<font color= "green">        //get user id from dropdownlist of existing users</font>
+<font color= "blue">        </font>roleId = Int32.Parse(allRoles.SelectedItem.Value);
+<font color= "blue"></font>
+<font color= "green">        // Add a new userRole to the database</font>
+<font color= "blue">        </font>AdminDB admin = new AdminDB();
+<font color= "blue">        </font>admin.AddUserRole(roleId, userId);
+<font color= "blue"></font>
+<font color= "green">        // Rebind list</font>
+<font color= "blue">        </font>BindData();
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The UpdateUser_Click server event handler is used to add</font>
+<font color= "green">    // the update the user settings</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> UpdateUser_Click(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // update the user record in the database</font>
+<font color= "blue">        </font>UsersDB users = new UsersDB();
+<font color= "blue">        </font>users.UpdateUser(userId, Email.Text, Password.Text);
+<font color= "blue"></font>
+<font color= "green">        // redirect to this page with the corrected querystring args</font>
+<font color= "blue">        </font>Response.Redirect("~/Admin/ManageUsers.aspx?userId=" + userId + "&username=" + Email.Text + "&tabindex=" + tabIndex + "&tabid=" + tabId);
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The UserRoles_ItemCommand server event handler on this page</font>
+<font color= "green">    // is used to handle deleting the user from roles</font>
+<font color= "green">    // from the userRoles asp:datalist control</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> UserRoles_ItemCommand(object sender, DataListCommandEventArgs e) {
+<font color= "blue"></font>
+<font color= "blue">        </font>AdminDB admin = new AdminDB();
+<font color= "blue">        </font>int roleId = (int) userRoles.DataKeys[e.Item.ItemIndex];
+<font color= "blue"></font>
+<font color= "green">        // update database</font>
+<font color= "blue">        </font>admin.DeleteUserRole(roleId, userId);
+<font color= "blue"></font>
+<font color= "green">        // Ensure that item is not editable</font>
+<font color= "blue">        </font>userRoles.EditItemIndex = -1;
+<font color= "blue"></font>
+<font color= "green">        // Repopulate list</font>
+<font color= "blue">        </font>BindData();
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The BindData helper method is used to bind the list of</font>
+<font color= "green">    // security roles for this portal to an asp:datalist server control</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> BindData() {
+<font color= "blue"></font>
+<font color= "green">        // Bind the Email and Password</font>
+<font color= "blue">        </font>UsersDB users = new UsersDB();
+<font color= "blue">        </font>SqlDataReader dr = users.GetSingleUser(userName);
+<font color= "blue"></font>
+<font color= "green">        // Read first row from database</font>
+<font color= "blue">        </font>dr.Read();
+<font color= "blue"></font>
+<font color= "blue">        </font>Email.Text = (String) dr["Email"];
+<font color= "blue">        </font>Password.Text = (String) dr["Password"];
+<font color= "blue"></font>
+<font color= "blue">        </font>dr.Close();
+<font color= "blue"></font>
+<font color= "green">        // add the user name to the title</font>
+<font color= "blue"></font><font color= "blue">        if </font>(userName != "") {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "blue">            </font>title.InnerText = "Manage User: " + userName;
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "green">        // bind users in role to DataList</font>
+<font color= "blue">        </font>userRoles.DataSource = users.GetRolesByUser(userName);
+<font color= "blue">        </font>userRoles.DataBind();
+<font color= "blue"></font>
+<font color= "green">        // Obtain PortalSettings from Current Context</font>
+<font color= "blue">        </font>PortalSettings portalSettings = (PortalSettings) Context.Items["PortalSettings"];
+<font color= "blue"></font>
+<font color= "green">        // Get the portal's roles from the database</font>
+<font color= "blue">        </font>AdminDB admin = new AdminDB();
+<font color= "blue"></font>
+<font color= "green">        // bind all portal roles to dropdownlist</font>
+<font color= "blue">        </font>allRoles.DataSource = admin.GetPortalRoles(portalSettings.PortalId);
+<font color= "blue">        </font>allRoles.DataBind();
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "blue">&lt/</font><font color="maroon">script</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">html</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">head</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">link</font> rel="stylesheet" href='&lt%= Request.ApplicationPath + "/Portal.css" %<font color= "blue">&gt</font>' type="text/css" <font color= "blue">/&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">head</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">body</font> leftmargin="0" bottommargin="0" rightmargin="0" topmargin="0" marginheight="0" marginwidth="0"<font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">form</font> runat="server"<font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color="maroon">table</font> width="100%" cellspacing="0" cellpadding="0" border="0"<font color= "blue">&gt</font>
+                <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                    <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2"<font color= "blue">&gt</font>
+                        <font color= "blue">&lt</font><font color=blue>portal:Banner ShowTabs="false" runat="server" /</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt</font><font color="maroon">td</font> width="100"<font color= "blue">&gt</font>
+                        &nbsp;
+                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                        <font color= "blue">&lt</font><font color="maroon">table</font> width="450" cellspacing="0" cellpadding="4" border="0"<font color= "blue">&gt</font>
+                            <font color= "blue">&lt</font><font color="maroon">tr</font> height="*" valign="top"<font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2"<font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color="maroon">table</font> width="100%" cellspacing="0" cellpadding="0"<font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> align="left"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">span</font> id="title" class="Head" runat="server"<font color= "blue">&gt</font>Manage User<font color= "blue">&lt/</font><font color="maroon">span</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">hr</font> noshade size="1pt"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font> class="Normal"<font color= "blue">&gt</font>
+                                    Email (or Windows domain name):
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color=blue>asp:Textbox id="Email" width="200" cssclass="NormalTextBox" runat="server" /</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font> class="Normal"<font color= "blue">&gt</font>
+                                    Password:
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color=blue>asp:Textbox id="Password" width="200" cssclass="NormalTextBox" runat="server" /</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font> colspan="3"<font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color=blue>asp:LinkButton Text="Apply Name and Password Changes" OnClick="UpdateUser_Click" cssclass="CommandButton" runat="server" ID="Linkbutton1" /</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2"<font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color=blue>asp:DropDownList id="allRoles" DataTextField="RoleName" DataValueField="RoleID" runat="server" /</font><font color= "blue">&gt</font>
+                                    &nbsp;<font color= "blue">&lt</font><font color=blue>asp:LinkButton id="addExisting" cssclass="CommandButton" OnClick="AddRole_Click" Text="Add user to this role" runat="server" /</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                    &nbsp;
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color=blue>asp:DataList id="userRoles" RepeatColumns="2" OnItemCommand="UserRoles_ItemCommand" DataKeyField="RoleId" runat="server"</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">ItemStyle</font> Width="225" <font color= "blue">/&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">ItemTemplate</font><font color= "blue">&gt</font>
+                                            &nbsp;&nbsp;<font color= "blue">&lt</font><font color=blue>asp:ImageButton ImageUrl="~/images/delete.gif" CommandName="delete" AlternateText="Remove user from this role" runat="server" ID="Imagebutton1" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color=blue>asp:Label Text='&lt%# DataBinder.Eval(Container.DataItem, "RoleName") %<font color= "blue">&gt</font>' cssclass="Normal" runat="server" ID="Label1" /</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">ItemTemplate</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt/</font><font color=blue>asp:DataList</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2"<font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color="maroon">hr</font> noshade size="1pt"<font color= "blue">&gt</font>
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2"<font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color=blue>asp:LinkButton id="saveBtn" class="CommandButton" Text="Save User Changes" onclick="Save_Click" runat="server" /</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                        <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color="maroon">form</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">body</font><font color= "blue">&gt</font>
+<font color= "blue">&lt/</font><font color="maroon">html</font><font color= "blue">&gt</font>
+</pre>

@@ -1,0 +1,683 @@
+<html><head><link rel=stylesheet href=style.css></head><body><div class=SourcePanel style='font-size:12'><pre style='background-color:white'>
+&lt%@ Page language="C#" %<font color= "blue">&gt</font>
+&lt%@ Register TagPrefix="portal" TagName="Banner" Src="~/DesktopPortalBanner.ascx" %<font color= "blue">&gt</font>
+&lt%@ Import Namespace="System.Data.SqlClient" %<font color= "blue">&gt</font>
+&lt%@ Import Namespace="ASPNetPortal" %<font color= "blue">&gt</font>
+<font color= "green">&lt%--
+     The TabLayout.aspx page is used to control the layout settings of an
+     individual tab within the portal.
+--%<font color= "blue">&gt</font></font>
+<font color= "blue">&lt</font><font color="maroon">script</font> runat="server"<font color= "blue">&gt</font>
+<font color= "blue"></font>
+<font color= "blue">    </font>int tabId = 0;
+<font color= "blue">    </font>ArrayList leftList;
+<font color= "blue">    </font>ArrayList contentList;
+<font color= "blue">    </font>ArrayList rightList;
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The Page_Load server event handler on this page is used</font>
+<font color= "green">    // to populate a tab's layout settings on the page</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> Page_Load(Object Sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Verify that the current user has access to access this page</font>
+<font color= "blue"></font><font color= "blue">        if </font>(PortalSecurity.IsInRoles("Admins") == false) {<font color= "blue"></font>
+<font color= "blue">            </font>Response.Redirect("~/Admin/EditAccessDenied.aspx");
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "green">        // Determine Tab to Edit</font>
+<font color= "blue"></font><font color= "blue">        if </font>(Request.Params["tabid"] != null) {<font color= "blue"></font>
+<font color= "blue">            </font>tabId = Int32.Parse(Request.Params["tabid"]);
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "green">        // If first visit to the page, update all entries</font>
+<font color= "blue"></font><font color= "blue">        if </font>(Page.IsPostBack == false) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "blue">            </font>BindData();
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The AddModuleToPane_Click server event handler on this page is used</font>
+<font color= "green">    // to add a new portal module into the tab</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> AddModuleToPane_Click(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // All new modules go to the end of the contentpane</font>
+<font color= "blue">        </font>ModuleItem m = new ModuleItem();
+<font color= "blue">        </font>m.ModuleTitle = moduleTitle.Text;
+<font color= "blue">        </font>m.ModuleDefId = Int32.Parse(moduleType.SelectedItem.Value);
+<font color= "blue">        </font>m.ModuleOrder = 999;
+<font color= "blue">        </font>
+<font color= "green">        // save to database</font>
+<font color= "blue">        </font>AdminDB admin = new AdminDB();
+<font color= "blue">        </font>m.ModuleId = admin.AddModule(tabId, m.ModuleOrder, "ContentPane", m.ModuleTitle, m.ModuleDefId, 0, "Admins", false);
+<font color= "blue">        </font>
+<font color= "green">        // Obtain portalId from Current Context</font>
+<font color= "blue">        </font>PortalSettings portalSettings = (PortalSettings) Context.Items["PortalSettings"];
+<font color= "blue"></font>
+<font color= "green">        // reload the portalSettings from the database</font>
+<font color= "blue">        </font>HttpContext.Current.Items["PortalSettings"] = new PortalSettings(portalSettings.PortalId, tabId);
+<font color= "blue">        </font>
+<font color= "green">        // reorder the modules in the content pane</font>
+<font color= "blue">        </font>ArrayList modules = GetModules("ContentPane");
+<font color= "blue">        </font>OrderModules(modules);
+<font color= "blue">        </font>
+<font color= "green">        // resave the order</font>
+<font color= "blue">        </font>foreach (ModuleItem item in modules) {
+<font color= "blue">            </font>admin.UpdateModuleOrder(item.ModuleId, item.ModuleOrder, "ContentPane");
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "green">        // Redirect to the same page to pick up changes</font>
+<font color= "blue">        </font>Response.Redirect(Request.RawUrl);
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The UpDown_Click server event handler on this page is</font>
+<font color= "green">    // used to move a portal module up or down on a tab's layout pane</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> UpDown_Click(Object sender, ImageClickEventArgs e) {
+<font color= "blue"></font>
+<font color= "blue">        </font>String cmd = ((ImageButton)sender).CommandName;
+<font color= "blue">        </font>String pane = ((ImageButton)sender).CommandArgument;
+<font color= "blue">        </font>ListBox _listbox = (ListBox) Page.FindControl(pane);
+<font color= "blue">               </font>
+<font color= "blue">        </font>ArrayList modules = GetModules(pane);
+<font color= "blue">        </font>
+<font color= "blue"></font><font color= "blue">        if </font>(_listbox.SelectedIndex != -1) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "blue">            </font>int delta;
+<font color= "blue">            </font>int selection = -1; 
+<font color= "blue">            </font>
+<font color= "green">            // Determine the delta to apply in the order number for the module</font>
+<font color= "green">            // within the list.  +3 moves down one item; -3 moves up one item</font>
+<font color= "blue">            </font>
+<font color= "blue"></font><font color= "blue">            if </font>(cmd == "down") {<font color= "blue"></font>
+<font color= "blue">            </font>
+<font color= "blue">                </font>delta = 3;
+<font color= "blue"></font><font color= "blue">                if </font>(_listbox.SelectedIndex < _listbox.Items.Count-1)<font color= "blue"></font>
+<font color= "blue">                    </font>selection = _listbox.SelectedIndex + 1;
+<font color= "blue">            </font>}
+<font color= "blue"></font><font color= "blue">            else </font>{<font color= "blue"></font>
+<font color= "blue">            </font>
+<font color= "blue">                </font>delta = -3;
+<font color= "blue"></font><font color= "blue">                if </font>(_listbox.SelectedIndex > 0)<font color= "blue"></font>
+<font color= "blue">                    </font>selection = _listbox.SelectedIndex - 1;
+<font color= "blue">            </font>}
+<font color= "blue"></font>
+<font color= "blue">            </font>ModuleItem m;
+<font color= "blue">            </font>m = (ModuleItem) modules[_listbox.SelectedIndex];
+<font color= "blue">            </font>m.ModuleOrder += delta; 
+<font color= "blue">            </font>
+<font color= "green">            // reorder the modules in the content pane</font>
+<font color= "blue">            </font>OrderModules(modules);
+<font color= "blue">        </font>
+<font color= "green">            // resave the order</font>
+<font color= "blue">            </font>AdminDB admin = new AdminDB();
+<font color= "blue">            </font>foreach (ModuleItem item in modules) {
+<font color= "blue">                </font>admin.UpdateModuleOrder(item.ModuleId, item.ModuleOrder, pane);
+<font color= "blue">            </font>}
+<font color= "blue">        </font>}
+<font color= "blue">        </font>
+<font color= "green">        // Redirect to the same page to pick up changes</font>
+<font color= "blue">        </font>Response.Redirect(Request.RawUrl);
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The RightLeft_Click server event handler on this page is</font>
+<font color= "green">    // used to move a portal module between layout panes on</font>
+<font color= "green">    // the tab page</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> RightLeft_Click(Object sender, ImageClickEventArgs e) {
+<font color= "blue"></font>
+<font color= "blue">        </font>String sourcePane = ((ImageButton)sender).Attributes["sourcepane"];
+<font color= "blue">        </font>String targetPane = ((ImageButton)sender).Attributes["targetpane"];
+<font color= "blue">        </font>ListBox sourceBox = (ListBox) Page.FindControl(sourcePane);
+<font color= "blue">        </font>ListBox targetBox = (ListBox) Page.FindControl(targetPane);
+<font color= "blue">         </font>
+<font color= "blue"></font><font color= "blue">        if </font>(sourceBox.SelectedIndex != -1) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "green">            // get source arraylist</font>
+<font color= "blue">            </font>ArrayList sourceList = GetModules(sourcePane);
+<font color= "blue">        </font>
+<font color= "green">            // get a reference to the module to move</font>
+<font color= "green">            // and assign a high order number to send it to the end of the target list</font>
+<font color= "blue">            </font>ModuleItem m = (ModuleItem) sourceList[sourceBox.SelectedIndex];
+<font color= "blue">            </font>
+<font color= "green">            // add it to the database</font>
+<font color= "blue">            </font>AdminDB admin = new AdminDB();
+<font color= "blue">            </font>admin.UpdateModuleOrder(m.ModuleId, 998, targetPane);
+<font color= "blue"></font>
+<font color= "green">            // delete it from the source list</font>
+<font color= "blue">            </font>sourceList.RemoveAt(sourceBox.SelectedIndex);
+<font color= "blue"></font>
+<font color= "green">            // Obtain portalId from Current Context</font>
+<font color= "blue">            </font>PortalSettings portalSettings = (PortalSettings) Context.Items["PortalSettings"];
+<font color= "blue"></font>
+<font color= "green">            // reload the portalSettings from the database</font>
+<font color= "blue">            </font>HttpContext.Current.Items["PortalSettings"] = new PortalSettings(portalSettings.PortalId, tabId);
+<font color= "blue">            </font>
+<font color= "green">            // reorder the modules in the source pane</font>
+<font color= "blue">            </font>sourceList = GetModules(sourcePane);
+<font color= "blue">            </font>OrderModules(sourceList);
+<font color= "blue">            </font>
+<font color= "green">            // resave the order</font>
+<font color= "blue">            </font>foreach (ModuleItem item in sourceList) {
+<font color= "blue">                </font>admin.UpdateModuleOrder(item.ModuleId, item.ModuleOrder, sourcePane);
+<font color= "blue">            </font>}           
+<font color= "blue">            </font>
+<font color= "green">            // reorder the modules in the target pane</font>
+<font color= "blue">            </font>ArrayList targetList = GetModules(targetPane);
+<font color= "blue">            </font>OrderModules(targetList);
+<font color= "blue">                        </font>
+<font color= "green">            // resave the order</font>
+<font color= "blue">            </font>foreach (ModuleItem item in targetList) {
+<font color= "blue">                </font>admin.UpdateModuleOrder(item.ModuleId, item.ModuleOrder, targetPane);
+<font color= "blue">            </font>}           
+<font color= "blue">            </font>
+<font color= "green">            // Redirect to the same page to pick up changes</font>
+<font color= "blue">            </font>Response.Redirect(Request.RawUrl);
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The Apply_Click server event handler on this page is</font>
+<font color= "green">    // used to save the current tab settings to the database and </font>
+<font color= "green">    // then redirect back to the main admin page.</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> Apply_Click(Object Sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Save changes then navigate back to admin.  </font>
+<font color= "blue">        </font>String id = (String)((LinkButton)Sender).ID;
+<font color= "blue">        </font>
+<font color= "blue">        </font>SaveTabData();
+<font color= "blue"></font>
+<font color= "green">        // redirect back to the admin page</font>
+<font color= "blue">        </font>
+<font color= "green">        // Obtain PortalSettings from Current Context</font>
+<font color= "blue">        </font>PortalSettings portalSettings = (PortalSettings) Context.Items["PortalSettings"];
+<font color= "blue">        </font>int adminIndex = portalSettings.DesktopTabs.Count-1;        
+<font color= "blue">       </font>
+<font color= "blue">        </font>Response.Redirect("~/DesktopDefault.aspx?tabindex=" + adminIndex.ToString() + "&tabid=" + ((TabStripDetails)portalSettings.DesktopTabs[adminIndex]).TabId);       
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The TabSettings_Change server event handler on this page is</font>
+<font color= "green">    // invoked any time the tab name or access security settings</font>
+<font color= "green">    // change.  The event handler in turn calls the "SaveTabData"</font>
+<font color= "green">    // helper method to ensure that these changes are persisted</font>
+<font color= "green">    // to the portal configuration file.</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> TabSettings_Change(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Ensure that settings are saved</font>
+<font color= "blue">        </font>SaveTabData();
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The SaveTabData helper method is used to persist the</font>
+<font color= "green">    // current tab settings to the database.</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> SaveTabData() {
+<font color= "blue">    </font>
+<font color= "green">        // Construct Authorized User Roles String</font>
+<font color= "blue">        </font>String authorizedRoles = "";
+<font color= "blue"></font>
+<font color= "blue">        </font>foreach(ListItem item in authRoles.Items) {
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">            if </font>(item.Selected == true) {<font color= "blue"></font>
+<font color= "blue">                </font>authorizedRoles = authorizedRoles + item.Text + ";";
+<font color= "blue">            </font>}
+<font color= "blue">        </font>}
+<font color= "blue">        </font>
+<font color= "green">        // Obtain PortalSettings from Current Context</font>
+<font color= "blue">        </font>PortalSettings portalSettings = (PortalSettings) Context.Items["PortalSettings"];
+<font color= "blue"></font>
+<font color= "green">        // update Tab info in the database</font>
+<font color= "blue">        </font>AdminDB admin = new AdminDB();
+<font color= "blue">        </font>admin.UpdateTab(portalSettings.PortalId, tabId, tabName.Text, portalSettings.ActiveTab.TabOrder, authorizedRoles, mobileTabName.Text, showMobile.Checked);
+<font color= "blue">    </font>}
+<font color= "blue">    </font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The EditBtn_Click server event handler on this page is</font>
+<font color= "green">    // used to edit an individual portal module's settings</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> EditBtn_Click(Object sender, ImageClickEventArgs e) {
+<font color= "blue"></font>
+<font color= "blue">        </font>String pane = ((ImageButton)sender).CommandArgument;
+<font color= "blue">        </font>ListBox _listbox = (ListBox) Page.FindControl(pane);
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">        if </font>(_listbox.SelectedIndex != -1) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "blue">            </font>int mid = Int32.Parse(_listbox.SelectedItem.Value);
+<font color= "blue">            </font>
+<font color= "green">            // Redirect to module settings page</font>
+<font color= "blue">            </font>Response.Redirect("ModuleSettings.aspx?mid=" + mid + "&tabid=" + tabId);
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The DeleteBtn_Click server event handler on this page is</font>
+<font color= "green">    // used to delete an portal module from the page</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> DeleteBtn_Click(Object sender, ImageClickEventArgs e) {
+<font color= "blue"></font>
+<font color= "blue">        </font>String pane = ((ImageButton)sender).CommandArgument;
+<font color= "blue">        </font>ListBox _listbox = (ListBox) Page.FindControl(pane);
+<font color= "blue">        </font>ArrayList modules = GetModules(pane);
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">        if </font>(_listbox.SelectedIndex != -1) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "blue">            </font>ModuleItem m = (ModuleItem) modules[_listbox.SelectedIndex];
+<font color= "blue"></font><font color= "blue">            if </font>(m.ModuleId > -1) {<font color= "blue"></font>
+<font color= "blue">            </font>
+<font color= "green">                // must delete from database too</font>
+<font color= "blue">                </font>AdminDB admin = new AdminDB();
+<font color= "blue">                </font>admin.DeleteModule(m.ModuleId);
+<font color= "blue">            </font>}
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "green">        // Redirect to the same page to pick up changes</font>
+<font color= "blue">        </font>Response.Redirect(Request.RawUrl);
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The BindData helper method is used to update the tab's</font>
+<font color= "green">    // layout panes with the current configuration information</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> BindData() {
+<font color= "blue"></font>
+<font color= "green">        // Obtain PortalSettings from Current Context</font>
+<font color= "blue">        </font>PortalSettings portalSettings = (PortalSettings) Context.Items["PortalSettings"];
+<font color= "blue">        </font>TabSettings tab = portalSettings.ActiveTab;
+<font color= "blue"></font>
+<font color= "green">        // Populate Tab Names, etc.</font>
+<font color= "blue">        </font>tabName.Text = tab.TabName;
+<font color= "blue">        </font>mobileTabName.Text = tab.MobileTabName;
+<font color= "blue">        </font>showMobile.Checked = tab.ShowMobile;
+<font color= "blue"></font>
+<font color= "green">        // Populate checkbox list with all security roles for this portal</font>
+<font color= "green">        // and "check" the ones already configured for this tab</font>
+<font color= "blue">        </font>AdminDB admin = new AdminDB();
+<font color= "blue">        </font>SqlDataReader roles = admin.GetPortalRoles(portalSettings.PortalId);
+<font color= "blue"></font>
+<font color= "green">        // Clear existing items in checkboxlist</font>
+<font color= "blue">        </font>authRoles.Items.Clear();
+<font color= "blue"></font>
+<font color= "blue">        </font>ListItem allItem = new ListItem();
+<font color= "blue">        </font>allItem.Text = "All Users";
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">        if </font>(tab.AuthorizedRoles.LastIndexOf("All Users") > -1) {<font color= "blue"></font>
+<font color= "blue">            </font>allItem.Selected = true;
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "blue">        </font>authRoles.Items.Add(allItem);
+<font color= "blue"></font>
+<font color= "blue">        </font>while(roles.Read()) {
+<font color= "blue"></font>
+<font color= "blue">            </font>ListItem item = new ListItem();
+<font color= "blue">            </font>item.Text = (String) roles["RoleName"];
+<font color= "blue">            </font>item.Value = roles["RoleID"].ToString();
+<font color= "blue">            </font>
+<font color= "blue"></font><font color= "blue">            if </font>((tab.AuthorizedRoles.LastIndexOf(item.Text)) > -1) {<font color= "blue"></font>
+<font color= "blue">                </font>item.Selected = true;
+<font color= "blue">            </font>}
+<font color= "blue"></font>
+<font color= "blue">            </font>authRoles.Items.Add(item);
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "green">        // Populate the "Add Module" Data</font>
+<font color= "blue">        </font>moduleType.DataSource = admin.GetModuleDefinitions(portalSettings.PortalId);
+<font color= "blue">        </font>moduleType.DataBind();
+<font color= "blue"></font>
+<font color= "green">        // Populate Right Hand Module Data</font>
+<font color= "blue">        </font>rightList = GetModules("RightPane");
+<font color= "blue">        </font>rightPane.DataBind();
+<font color= "blue"></font>
+<font color= "green">        // Populate Content Pane Module Data</font>
+<font color= "blue">        </font>contentList = GetModules("ContentPane");
+<font color= "blue">        </font>contentPane.DataBind();
+<font color= "blue"></font>
+<font color= "green">        // Populate Left Hand Pane Module Data</font>
+<font color= "blue">        </font>leftList = GetModules("LeftPane");
+<font color= "blue">        </font>leftPane.DataBind();
+<font color= "blue">    </font>}
+<font color= "blue">    </font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The GetModules helper method is used to get the modules</font>
+<font color= "green">    // for a single pane within the tab</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    </font>ArrayList GetModules (String pane) {
+<font color= "blue">    </font>
+<font color= "green">        // Obtain PortalSettings from Current Context</font>
+<font color= "blue">        </font>PortalSettings portalSettings = (PortalSettings) Context.Items["PortalSettings"];
+<font color= "blue">        </font>ArrayList paneModules = new ArrayList();
+<font color= "blue">        </font>
+<font color= "blue">        </font>foreach (ModuleSettings module in portalSettings.ActiveTab.Modules) {
+<font color= "blue">            </font>
+<font color= "blue"></font><font color= "blue">            if </font>((module.PaneName).ToLower() == pane.ToLower()) {<font color= "blue"></font>
+<font color= "blue">            </font>
+<font color= "blue">                </font>ModuleItem m = new ModuleItem();
+<font color= "blue">                </font>m.ModuleTitle = module.ModuleTitle;
+<font color= "blue">                </font>m.ModuleId = module.ModuleId;
+<font color= "blue">                </font>m.ModuleDefId = module.ModuleDefId;
+<font color= "blue">                </font>m.ModuleOrder = module.ModuleOrder;
+<font color= "blue">                </font>paneModules.Add(m);
+<font color= "blue">            </font>}
+<font color= "blue">        </font>}
+<font color= "blue">        </font>
+<font color= "blue">        return</font> paneModules;
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The OrderModules helper method is used to reset the display</font>
+<font color= "green">    // order for modules within a pane</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> OrderModules (ArrayList list) {
+<font color= "blue">    </font>
+<font color= "blue">        </font>int i = 1;
+<font color= "blue">        </font>
+<font color= "green">        // sort the arraylist</font>
+<font color= "blue">        </font>list.Sort();
+<font color= "blue">        </font>
+<font color= "green">        // renumber the order</font>
+<font color= "blue">        </font>foreach (ModuleItem m in list) {
+<font color= "blue">        </font>
+<font color= "green">            // number the items 1, 3, 5, etc. to provide an empty order</font>
+<font color= "green">            // number when moving items up and down in the list.</font>
+<font color= "blue">            </font>m.ModuleOrder = i;
+<font color= "blue">            </font>i += 2;
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "blue">&lt/</font><font color="maroon">script</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">HTML</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">HEAD</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">link</font> rel="stylesheet" href='&lt%= Request.ApplicationPath + "/Portal.css" %<font color= "blue">&gt</font>' type="text/css"<font color= "blue">&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">HEAD</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">body</font> leftmargin="0" bottommargin="0" rightmargin="0" topmargin="0" marginheight="0" marginwidth="0"<font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">form</font> runat="server"<font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color="maroon">table</font> width="100%" cellspacing="0" cellpadding="0" border="0"<font color= "blue">&gt</font>
+                <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                    <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2"<font color= "blue">&gt</font>
+                        <font color= "blue">&lt</font><font color=blue>portal:Banner ShowTabs="false" runat="server" id="Banner1" /</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                        <font color= "blue">&lt</font><font color="maroon">table</font> width="98%" cellspacing="0" cellpadding="4"<font color= "blue">&gt</font>
+                            <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font> width="150"<font color= "blue">&gt</font>
+                                    &nbsp;
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font> width="*"<font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color="maroon">table</font> border="0" cellpadding="2" cellspacing="1"<font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="4"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">table</font> width="100%" cellspacing="0" cellpadding="0"<font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                        <font color= "blue">&lt</font><font color="maroon">td</font> align="left" class="Head"<font color= "blue">&gt</font>
+                                                            Tab Name and Layout
+                                                        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                        <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                            <font color= "blue">&lt</font><font color="maroon">hr</font> noshade size="1"<font color= "blue">&gt</font>
+                                                        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> width="100" class="Normal"<font color= "blue">&gt</font>
+                                                Tab Name:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="3"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:Textbox id="tabName" width="300" OnTextChanged="TabSettings_Change" cssclass="NormalTextBox" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="Normal" nowrap<font color= "blue">&gt</font>
+                                                Authorized Roles:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="3"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:CheckBoxList id="authRoles" OnSelectedIndexChanged="TabSettings_Change" RepeatColumns="2" Font-Names="Verdana,Arial" Font-Size="8pt" width="300" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                &nbsp;
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="3"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">hr</font> noshade size="1"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="Normal" nowrap<font color= "blue">&gt</font>
+                                                Show to mobile users?:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="3"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:Checkbox id="showMobile" OnCheckedChanged="TabSettings_Change" Font-Names="Verdana,Arial" Font-Size="8pt" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="Normal" nowrap<font color= "blue">&gt</font>
+                                                Mobile Tab Name:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="3"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:Textbox id="mobileTabName" width="300" OnTextChanged="TabSettings_Change" cssclass="NormalTextBox" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="4"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">hr</font> noshade size="1"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="Normal"<font color= "blue">&gt</font>
+                                                Add Module:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="Normal"<font color= "blue">&gt</font>
+                                                Module Type
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:DropDownList id="moduleType" DataValueField="ModuleDefID" DataTextField="FriendlyName" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                &nbsp;
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="Normal"<font color= "blue">&gt</font>
+                                                Module Name:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:Textbox id="moduleTitle" EnableViewState="false" Text="New Module Name" cssclass="NormalTextBox" width="250" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                &nbsp;
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="3"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:LinkButton class="CommandButton" onclick="AddModuleToPane_Click" Text='<font color= "blue">&lt</font><font color="maroon">img</font> src="../images/dn.gif" border=0<font color= "blue">&gt</font> Add to "Organize Modules" Below' runat="server" id="LinkButton1" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                &nbsp;
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="3"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">hr</font> noshade size="1"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="Normal"<font color= "blue">&gt</font>
+                                                Organize Modules:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> width="120"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">table</font> border="0" cellspacing="0" cellpadding="2" width="100%"<font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                        <font color= "blue">&lt</font><font color="maroon">td</font> class="NormalBold"<font color= "blue">&gt</font>
+                                                            &nbsp;Left Mini Pane
+                                                        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                                        <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                            <font color= "blue">&lt</font><font color="maroon">table</font> border="0" cellspacing="2" cellpadding="0"<font color= "blue">&gt</font>
+                                                                <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                                                    <font color= "blue">&lt</font><font color="maroon">td</font> rowspan="2"<font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ListBox id="leftPane" DataSource="&lt%# leftList %<font color= "blue">&gt</font>" DataTextField="ModuleTitle" DataValueField="ModuleId" width="110" rows="7" runat="server" /</font><font color= "blue">&gt</font>
+                                                                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                                    <font color= "blue">&lt</font><font color="maroon">td</font> valign="top" nowrap<font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ImageButton ImageUrl="~/images/up.gif" onclick="UpDown_Click" CommandName="up" CommandArgument="leftPane" AlternateText="Move selected module up in list" runat="server" id="ImageButton1" /</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ImageButton ImageUrl="~/images/rt.gif" onclick="RightLeft_Click" CommandName="right" sourcepane="leftPane" targetpane="contentPane" AlternateText="Move selected module to the content pane" runat="server" id="ImageButton2" /</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ImageButton ImageUrl="~/images/dn.gif" onclick="UpDown_Click" CommandName="down" CommandArgument="leftPane" AlternateText="Move selected module down in list" runat="server" id="ImageButton3" /</font><font color= "blue">&gt</font>
+                                                                        &nbsp;&nbsp;
+                                                                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                                <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                                <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                                    <font color= "blue">&lt</font><font color="maroon">td</font> valign="bottom" nowrap<font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ImageButton ImageUrl="~/images/edit.gif" onclick="EditBtn_Click" CommandName="edit" CommandArgument="leftPane" AlternateText="Edit this item" runat="server" id="ImageButton4" /</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ImageButton ImageUrl="~/images/delete.gif" onclick="DeleteBtn_Click" CommandName="delete" CommandArgument="leftPane" AlternateText="Delete this item" runat="server" id="ImageButton5" /</font><font color= "blue">&gt</font>
+                                                                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                                <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                            <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                                                        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> width="*"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">table</font> border="0" cellspacing="0" cellpadding="2" width="100%"<font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                        <font color= "blue">&lt</font><font color="maroon">td</font> class="NormalBold"<font color= "blue">&gt</font>
+                                                            &nbsp;Content Pane
+                                                        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                        <font color= "blue">&lt</font><font color="maroon">td</font> align="middle"<font color= "blue">&gt</font>
+                                                            <font color= "blue">&lt</font><font color="maroon">table</font> border="0" cellspacing="2" cellpadding="0"<font color= "blue">&gt</font>
+                                                                <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                                                    <font color= "blue">&lt</font><font color="maroon">td</font> rowspan="2"<font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ListBox id="contentPane" DataSource="&lt%# contentList %<font color= "blue">&gt</font>" DataTextField="ModuleTitle" DataValueField="ModuleId" width="170" rows="7" runat="server" /</font><font color= "blue">&gt</font>
+                                                                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                                    <font color= "blue">&lt</font><font color="maroon">td</font> valign="top" nowrap<font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ImageButton ImageUrl="~/images/up.gif" onclick="UpDown_Click" CommandName="up" CommandArgument="contentPane" AlternateText="Move selected module up in list" runat="server" id="ImageButton6" /</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ImageButton ImageUrl="~/images/lt.gif" onclick="RightLeft_Click" sourcepane="contentPane" targetpane="leftPane" AlternateText="Move selected module to the left pane" runat="server" id="ImageButton7" /</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ImageButton ImageUrl="~/images/rt.gif" onclick="RightLeft_Click" sourcepane="contentPane" targetpane="rightPane" AlternateText="Move selected module to the right pane" runat="server" id="ImageButton8" /</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ImageButton ImageUrl="~/images/dn.gif" onclick="UpDown_Click" CommandName="down" CommandArgument="contentPane" AlternateText="Move selected module down in list" runat="server" id="ImageButton9" /</font><font color= "blue">&gt</font>
+                                                                        &nbsp;&nbsp;
+                                                                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                                <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                                <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                                    <font color= "blue">&lt</font><font color="maroon">td</font> valign="bottom" nowrap<font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ImageButton ImageUrl="~/images/edit.gif" onclick="EditBtn_Click" CommandName="edit" CommandArgument="contentPane" AlternateText="Edit this item" runat="server" id="ImageButton10" /</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ImageButton ImageUrl="~/images/delete.gif" onclick="DeleteBtn_Click" CommandName="delete" CommandArgument="contentPane" AlternateText="Delete this item" runat="server" id="ImageButton11" /</font><font color= "blue">&gt</font>
+                                                                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                                <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                            <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                                                        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> width="120"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">table</font> border="0" cellspacing="0" cellpadding="2" width="100%"<font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                        <font color= "blue">&lt</font><font color="maroon">td</font> class="NormalBold"<font color= "blue">&gt</font>
+                                                            &nbsp;Right Mini Pane
+                                                        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                        <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                            <font color= "blue">&lt</font><font color="maroon">table</font> border="0" cellspacing="2" cellpadding="0"<font color= "blue">&gt</font>
+                                                                <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                                                    <font color= "blue">&lt</font><font color="maroon">td</font> rowspan="2"<font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ListBox id="rightPane" DataSource="&lt%# rightList %<font color= "blue">&gt</font>" DataTextField="ModuleTitle" DataValueField="ModuleId" width="110" rows="7" runat="server" /</font><font color= "blue">&gt</font>
+                                                                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                                    <font color= "blue">&lt</font><font color="maroon">td</font> valign="top" nowrap<font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ImageButton ImageUrl="~/images/up.gif" onclick="UpDown_Click" CommandName="up" CommandArgument="rightPane" AlternateText="Move selected module up in list" runat="server" id="ImageButton12" /</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ImageButton ImageUrl="~/images/lt.gif" onclick="RightLeft_Click" sourcepane="rightPane" targetpane="contentPane" AlternateText="Move selected module to the left pane" runat="server" id="ImageButton13" /</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ImageButton ImageUrl="~/images/dn.gif" onclick="UpDown_Click" CommandName="down" CommandArgument="rightPane" AlternateText="Move selected module down in list" runat="server" id="ImageButton14" /</font><font color= "blue">&gt</font>
+                                                                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                                <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                                <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                                    <font color= "blue">&lt</font><font color="maroon">td</font> valign="bottom" nowrap<font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ImageButton ImageUrl="~/images/edit.gif" onclick="EditBtn_Click" CommandName="edit" CommandArgument="rightPane" AlternateText="Edit this item" runat="server" id="ImageButton15" /</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                                                                        <font color= "blue">&lt</font><font color=blue>asp:ImageButton ImageUrl="~/images/delete.gif" onclick="DeleteBtn_Click" CommandName="delete" CommandArgument="rightPane" AlternateText="Delete this item" runat="server" id="ImageButton16" /</font><font color= "blue">&gt</font>
+                                                                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                                <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                            <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                                                        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                    <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="4"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">hr</font> noshade size="1"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="4"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:LinkButton id="applyBtn" class="CommandButton" Text="Apply Changes" onclick="Apply_Click" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                        <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color="maroon">form</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">body</font><font color= "blue">&gt</font>
+<font color= "blue">&lt/</font><font color="maroon">HTML</font><font color= "blue">&gt</font>
+</pre>

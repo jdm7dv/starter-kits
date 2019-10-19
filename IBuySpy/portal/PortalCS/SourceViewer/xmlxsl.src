@@ -1,0 +1,4 @@
+User Control:XmlModule.ascx|DesktopModules_XmlModule_ascx.htm
+Business Component:AdminDB.cs|Components_AdminDB_cs.htm
+Stored Procedures: GetModuleSettings|GetModuleSettings.htm,UpdateModuleSetting|UpdateModuleSetting.htm
+Edit Page:EditXml.aspx|DesktopModules_EditXml_aspx.htm

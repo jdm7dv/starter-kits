@@ -1,0 +1,38 @@
+<html><head><link rel=stylesheet href=style.css></head><body><div class=SourcePanel style='font-size:12'><pre style='background-color:white'>
+&lt%@ Control language="C#" Inherits="ASPNetPortal.PortalModuleControl" %<font color= "blue">&gt</font>
+&lt%@ Register TagPrefix="Portal" TagName="Title" Src="~/DesktopModuleTitle.ascx"%<font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">script</font> runat="server"<font color= "blue">&gt</font>
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The Page_Load event handler on this User Control uses</font>
+<font color= "green">    // the Portal configuration system to obtain image details.</font>
+<font color= "green">    // It then sets these properties on an <asp:Image> server control.</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> Page_Load(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "blue">        </font>String imageSrc = (String) Settings["src"];
+<font color= "blue">        </font>String imageHeight = (String) Settings["height"];
+<font color= "blue">        </font>String imageWidth = (String) Settings["width"];
+<font color= "blue"></font>
+<font color= "green">        // Set Image Source, Width and Height Properties</font>
+<font color= "blue"></font><font color= "blue">        if </font>((imageSrc != null) && (imageSrc != "")) {<font color= "blue"></font>
+<font color= "blue">            </font>Image1.ImageUrl = imageSrc;
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">        if </font>((imageWidth != null) && (imageWidth != "")) {<font color= "blue"></font>
+<font color= "blue">            </font>Image1.Width = Int32.Parse(imageWidth);
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">        if </font>((imageHeight != null) && (imageHeight != "")) {<font color= "blue"></font>
+<font color= "blue">            </font>Image1.Height = Int32.Parse(imageHeight);
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "blue">&lt/</font><font color="maroon">script</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color=blue>portal:title EditText="Edit" EditUrl="~/DesktopModules/EditImage.aspx" runat="server" /</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color=blue>asp:image id="Image1" border="0" runat="server" /</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+</pre>

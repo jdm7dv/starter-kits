@@ -1,0 +1,106 @@
+<html><head><link rel=stylesheet href=style.css></head><body><div class=SourcePanel style='font-size:12'><pre style='background-color:white'>
+&lt%@ Control Inherits="ASPNetPortal.PortalModuleControl" %<font color= "blue">&gt</font>
+&lt%@ Register TagPrefix="Portal" TagName="Title" Src="~/DesktopModuleTitle.ascx"%<font color= "blue">&gt</font>
+&lt%@ Import Namespace="ASPNetPortal" %<font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">script</font> language="C#" runat="server"<font color= "blue">&gt</font>
+<font color= "blue"></font>
+<font color= "blue">    </font>int tabIndex = 0;
+<font color= "blue">    </font>int tabId = 0;
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The Page_Load server event handler on this user control is used</font>
+<font color= "green">    // to populate the current defs settings from the configuration system</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> Page_Load(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Verify that the current user has access to access this page</font>
+<font color= "blue"></font><font color= "blue">        if </font>(PortalSecurity.IsInRoles("Admins") == false) {<font color= "blue"></font>
+<font color= "blue">            </font>Response.Redirect("~/Admin/EditAccessDenied.aspx");
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">        if </font>(Request.Params["tabid"] != null) {<font color= "blue"></font>
+<font color= "blue">            </font>tabId = Int32.Parse(Request.Params["tabid"]);
+<font color= "blue">        </font>}
+<font color= "blue"></font><font color= "blue">        if </font>(Request.Params["tabindex"] != null) {<font color= "blue"></font>
+<font color= "blue">            </font>tabIndex = Int32.Parse(Request.Params["tabindex"]);
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "green">        // If this is the first visit to the page, bind the definition data to the datalist</font>
+<font color= "blue"></font><font color= "blue">        if </font>(Page.IsPostBack == false) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "blue">            </font>BindData();
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The AddDef_Click server event handler is used to add</font>
+<font color= "green">    // a new module definition for this portal</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> AddDef_Click(Object Sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // redirect to edit page</font>
+<font color= "blue">        </font>Response.Redirect("~/Admin/ModuleDefinitions.aspx?defId=-1&tabindex=" + tabIndex + "&tabid=" + tabId);
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The DefsList_ItemCommand server event handler on this page </font>
+<font color= "green">    // is used to handle the user editing module definitions</font>
+<font color= "green">    // from the DefsList asp:datalist control</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> DefsList_ItemCommand(object sender, DataListCommandEventArgs e) {
+<font color= "blue"></font>
+<font color= "blue">        </font>int moduleDefId = (int) defsList.DataKeys[e.Item.ItemIndex];
+<font color= "blue"></font>
+<font color= "green">        // redirect to edit page</font>
+<font color= "blue">        </font>Response.Redirect("~/Admin/ModuleDefinitions.aspx?defId=" + moduleDefId + "&tabindex=" + tabIndex + "&tabid=" + tabId);
+<font color= "blue">    </font>}
+<font color= "blue">    </font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The BindData helper method is used to bind the list of </font>
+<font color= "green">    // module definitions for this portal to an asp:datalist server control</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> BindData() {
+<font color= "blue"></font>
+<font color= "green">        // Obtain PortalSettings from Current Context</font>
+<font color= "blue">        </font>PortalSettings portalSettings = (PortalSettings) Context.Items["PortalSettings"];
+<font color= "blue">        </font>
+<font color= "green">        // Get the portal's defs from the database</font>
+<font color= "blue">        </font>AdminDB admin = new AdminDB();
+<font color= "blue">        </font>
+<font color= "blue">        </font>defsList.DataSource = admin.GetModuleDefinitions(portalSettings.PortalId);
+<font color= "blue">        </font>defsList.DataBind();
+<font color= "blue">    </font>}
+<font color= "blue">    </font>
+<font color= "blue">&lt/</font><font color="maroon">script</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color=blue>portal:title runat="server" id="Title1" /</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">table</font> cellpadding="2" cellspacing="0" border="0"<font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color=blue>asp:DataList id="defsList" OnItemCommand="DefsList_ItemCommand" DataKeyField="ModuleDefID" runat="server"</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt</font><font color="maroon">ItemTemplate</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt</font><font color=blue>asp:ImageButton ImageUrl="~/images/edit.gif" AlternateText="Edit this item" runat="server" /</font><font color= "blue">&gt</font>
+                    &nbsp;&nbsp;
+                    <font color= "blue">&lt</font><font color=blue>asp:Label Text='&lt%# DataBinder.Eval(Container.DataItem, "FriendlyName") %<font color= "blue">&gt</font>' CssClass="Normal" runat="server" /</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt/</font><font color="maroon">ItemTemplate</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt/</font><font color=blue>asp:DataList</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color=blue>asp:LinkButton cssclass="CommandButton" OnClick="AddDef_Click" Text="Add New Module Type" runat="server" /</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+<font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+</pre>

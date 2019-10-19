@@ -1,0 +1,3 @@
+Page Source:ModuleDefinitions.aspx|Admin_ModuleDefinitions_aspx.htm
+Business Component:AdminDB.cs|Components_AdminDB_cs.htm
+Stored Procedures:GetSingleModuleDefinition|GetSingleModuleDefinition.htm,AddModuleDefinition|AddModuleDefinition.htm,DeleteModuleDefinition|DeleteModuleDefinition.htm,UpdateModuleDefinition|UpdateModuleDefinition.htm

@@ -1,0 +1,3 @@
+Page Source:TabLayout.aspx|Admin_TabLayout_aspx.htm
+Business Component:AdminDB.cs|Components_AdminDB_cs.htm
+Stored Procedures:AddModule|AddModule.htm,DeleteModule|DeleteModule.htm,UpdateModuleOrder|UpdateModuleOrder.htm,UpdateTab|UpdateTab.htm,GetModuleDefinitions|GetModuleDefinitions.htm,GetPortalRoles|GetPortalRoles.htm

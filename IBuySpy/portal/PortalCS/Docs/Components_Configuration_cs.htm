@@ -1,0 +1,273 @@
+<html><head><link rel=stylesheet href=style.css></head><body><div class=SourcePanel style='font-size:12'><pre style='background-color:white'>
+<font color= "blue">using</font> System;
+<font color= "blue">using</font> System.Configuration;
+<font color= "blue">using</font> System.Web;
+<font color= "blue">using</font> System.Data;
+<font color= "blue">using</font> System.Data.SqlClient;
+<font color= "blue">using</font> System.Collections;
+<font color= "blue"></font>
+<font color= "blue">namespace</font> ASPNetPortal {
+<font color= "blue"></font>
+<font color= "green">    //*********************************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // TabStripDetails Class</font>
+<font color= "green">    //</font>
+<font color= "green">    // Class that encapsulates the just the tabstrip details -- TabName, TabId and TabOrder </font>
+<font color= "green">    // -- for a specific Tab in the Portal</font>
+<font color= "green">    //</font>
+<font color= "green">    //*********************************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    public class</font> TabStripDetails {
+<font color= "blue"></font>
+<font color= "blue">        public </font>int          TabId;
+<font color= "blue">        public </font>String       TabName;
+<font color= "blue">        public </font>int          TabOrder;
+<font color= "blue">        public </font>String       AuthorizedRoles;
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*********************************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // TabSettings Class</font>
+<font color= "green">    //</font>
+<font color= "green">    // Class that encapsulates the detailed settings for a specific Tab </font>
+<font color= "green">    // in the Portal</font>
+<font color= "green">    //</font>
+<font color= "green">    //*********************************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    public class</font> TabSettings {
+<font color= "blue">                           </font>
+<font color= "blue">        public </font>int          TabIndex;
+<font color= "blue">        public </font>int          TabId;
+<font color= "blue">        public </font>String       TabName;
+<font color= "blue">        public </font>int          TabOrder;
+<font color= "blue">        public </font>String       MobileTabName;
+<font color= "blue">        public </font>String       AuthorizedRoles;
+<font color= "blue">        public </font>bool         ShowMobile;
+<font color= "blue">        public </font>ArrayList    Modules = new ArrayList();
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*********************************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // ModuleSettings Class</font>
+<font color= "green">    //</font>
+<font color= "green">    // Class that encapsulates the detailed settings for a specific Tab </font>
+<font color= "green">    // in the Portal</font>
+<font color= "green">    //</font>
+<font color= "green">    //*********************************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    public class</font> ModuleSettings {
+<font color= "blue"></font>
+<font color= "blue">        public </font>int          ModuleId;
+<font color= "blue">        public </font>int          ModuleDefId;
+<font color= "blue">        public </font>int          TabId;
+<font color= "blue">        public </font>int          CacheTime;
+<font color= "blue">        public </font>int          ModuleOrder;
+<font color= "blue">        public </font>String       PaneName;
+<font color= "blue">        public </font>String       ModuleTitle;
+<font color= "blue">        public </font>String       AuthorizedEditRoles;
+<font color= "blue">        public </font>bool         ShowMobile;
+<font color= "blue">        public </font>String       DesktopSrc;
+<font color= "blue">        public </font>String       MobileSrc;
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*********************************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // PortalSettings Class</font>
+<font color= "green">    //</font>
+<font color= "green">    // This class encapsulates all of the settings for the Portal, as well</font>
+<font color= "green">    // as the configuration settings required to execute the current tab</font>
+<font color= "green">    // view within the portal.</font>
+<font color= "green">    //</font>
+<font color= "green">    //*********************************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    public class</font> PortalSettings {
+<font color= "blue"></font>
+<font color= "blue">        public </font>int          PortalId;
+<font color= "blue">        public </font>String       PortalName;
+<font color= "blue">        public </font>bool         AlwaysShowEditButton;
+<font color= "blue">        public </font>ArrayList    DesktopTabs = new ArrayList();
+<font color= "blue">        public </font>ArrayList    MobileTabs = new ArrayList();
+<font color= "blue">        public </font>TabSettings  ActiveTab = new TabSettings();
+<font color= "blue"></font>
+<font color= "green">        //*********************************************************************</font>
+<font color= "green">        //</font>
+<font color= "green">        // PortalSettings Constructor</font>
+<font color= "green">        //</font>
+<font color= "green">        // The PortalSettings Constructor encapsulates all of the logic</font>
+<font color= "green">        // necessary to obtain configuration settings necessary to render</font>
+<font color= "green">        // a Portal Tab view for a given request.</font>
+<font color= "green">        //</font>
+<font color= "green">        // These Portal Settings are stored within a SQL database, and are</font>
+<font color= "green">        // fetched below by calling the "GetPortalSettings" stored procedure.</font>
+<font color= "green">        // This stored procedure returns values as SPROC output parameters,</font>
+<font color= "green">        // and using three result sets.</font>
+<font color= "green">        //</font>
+<font color= "green">        //*********************************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">        public </font>PortalSettings(int tabIndex, int tabId) {
+<font color= "blue"></font>
+<font color= "green">            // Create Instance of Connection and Command Object</font>
+<font color= "blue">            </font>SqlConnection myConnection = new SqlConnection(ConfigurationSettings.AppSettings["connectionString"]);
+<font color= "blue">            </font>SqlCommand myCommand = new SqlCommand("GetPortalSettings", myConnection);
+<font color= "blue"></font>
+<font color= "green">            // Mark the Command as a SPROC</font>
+<font color= "blue">            </font>myCommand.CommandType = CommandType.StoredProcedure;
+<font color= "blue"></font>
+<font color= "green">            // Add Parameters to SPROC</font>
+<font color= "blue">            </font>SqlParameter parameterPortalAlias = new SqlParameter("@PortalAlias", SqlDbType.NVarChar, 50);
+<font color= "blue">            </font>parameterPortalAlias.Value = "p_default";
+<font color= "blue">            </font>myCommand.Parameters.Add(parameterPortalAlias);
+<font color= "blue"></font>
+<font color= "blue">            </font>SqlParameter parameterTabId = new SqlParameter("@TabId", SqlDbType.Int, 4);
+<font color= "blue">            </font>parameterTabId.Value = tabId;
+<font color= "blue">            </font>myCommand.Parameters.Add(parameterTabId);
+<font color= "blue"></font>
+<font color= "green">            // Add out parameters to Sproc</font>
+<font color= "blue">            </font>SqlParameter parameterPortalID = new SqlParameter("@PortalID", SqlDbType.Int, 4);
+<font color= "blue">            </font>parameterPortalID.Direction = ParameterDirection.Output;
+<font color= "blue">            </font>myCommand.Parameters.Add(parameterPortalID);
+<font color= "blue"></font>
+<font color= "blue">            </font>SqlParameter parameterPortalName = new SqlParameter("@PortalName", SqlDbType.NVarChar, 128);
+<font color= "blue">            </font>parameterPortalName.Direction = ParameterDirection.Output;
+<font color= "blue">            </font>myCommand.Parameters.Add(parameterPortalName);
+<font color= "blue"></font>
+<font color= "blue">            </font>SqlParameter parameterEditButton = new SqlParameter("@AlwaysShowEditButton", SqlDbType.Bit, 1);
+<font color= "blue">            </font>parameterEditButton.Direction = ParameterDirection.Output;
+<font color= "blue">            </font>myCommand.Parameters.Add(parameterEditButton);
+<font color= "blue"></font>
+<font color= "blue">            </font>SqlParameter parameterTabName = new SqlParameter("@TabName", SqlDbType.NVarChar, 50);
+<font color= "blue">            </font>parameterTabName.Direction = ParameterDirection.Output;
+<font color= "blue">            </font>myCommand.Parameters.Add(parameterTabName);
+<font color= "blue"></font>
+<font color= "blue">            </font>SqlParameter parameterTabOrder = new SqlParameter("@TabOrder", SqlDbType.Int, 4);
+<font color= "blue">            </font>parameterTabOrder.Direction = ParameterDirection.Output;
+<font color= "blue">            </font>myCommand.Parameters.Add(parameterTabOrder);
+<font color= "blue"></font>
+<font color= "blue">            </font>SqlParameter parameterMobileTabName = new SqlParameter("@MobileTabName", SqlDbType.NVarChar, 50);
+<font color= "blue">            </font>parameterMobileTabName.Direction = ParameterDirection.Output;
+<font color= "blue">            </font>myCommand.Parameters.Add(parameterMobileTabName);
+<font color= "blue"></font>
+<font color= "blue">            </font>SqlParameter parameterAuthRoles = new SqlParameter("@AuthRoles", SqlDbType.NVarChar, 256);
+<font color= "blue">            </font>parameterAuthRoles.Direction = ParameterDirection.Output;
+<font color= "blue">            </font>myCommand.Parameters.Add(parameterAuthRoles);
+<font color= "blue"></font>
+<font color= "blue">            </font>SqlParameter parameterShowMobile = new SqlParameter("@ShowMobile", SqlDbType.Bit, 1);
+<font color= "blue">            </font>parameterShowMobile.Direction = ParameterDirection.Output;
+<font color= "blue">            </font>myCommand.Parameters.Add(parameterShowMobile);
+<font color= "blue"></font>
+<font color= "green">            // Open the database connection and execute the command</font>
+<font color= "blue">            </font>myConnection.Open();
+<font color= "blue">            </font>SqlDataReader result = myCommand.ExecuteReader();
+<font color= "blue"></font>
+<font color= "green">            // Read the first resultset -- Desktop Tab Information</font>
+<font color= "blue">            </font>while(result.Read()) {
+<font color= "blue"></font>
+<font color= "blue">                </font>TabStripDetails tabDetails = new TabStripDetails();
+<font color= "blue">                </font>tabDetails.TabId = (int) result["TabId"];
+<font color= "blue">                </font>tabDetails.TabName = (String) result["TabName"];
+<font color= "blue">                </font>tabDetails.TabOrder = (int) result["TabOrder"];
+<font color= "blue">                </font>tabDetails.AuthorizedRoles = (String) result["AuthorizedRoles"];
+<font color= "blue"></font>
+<font color= "blue">                </font>this.DesktopTabs.Add(tabDetails);
+<font color= "blue">            </font>}
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">            if </font>(this.ActiveTab.TabId == 0) {<font color= "blue"></font>
+<font color= "blue">                </font>this.ActiveTab.TabId = ((TabStripDetails) this.DesktopTabs[0]).TabId; 
+<font color= "blue">            </font>}
+<font color= "blue"></font>
+<font color= "green">            // Read the second result --  Mobile Tab Information</font>
+<font color= "blue">            </font>result.NextResult();
+<font color= "blue"></font>
+<font color= "blue">            </font>while(result.Read()) {
+<font color= "blue"></font>
+<font color= "blue">                </font>TabStripDetails tabDetails = new TabStripDetails();
+<font color= "blue">                </font>tabDetails.TabId = (int) result["TabId"];
+<font color= "blue">                </font>tabDetails.TabName = (String) result["MobileTabName"];
+<font color= "blue">                </font>tabDetails.AuthorizedRoles = (String) result["AuthorizedRoles"];
+<font color= "blue"></font>
+<font color= "blue">                </font>this.MobileTabs.Add(tabDetails);
+<font color= "blue">            </font>}
+<font color= "blue"></font>
+<font color= "green">            // Read the third result --  Module Tab Information</font>
+<font color= "blue">            </font>result.NextResult();
+<font color= "blue"></font>
+<font color= "blue">            </font>while(result.Read()) {
+<font color= "blue"></font>
+<font color= "blue">                </font>ModuleSettings m = new ModuleSettings();
+<font color= "blue">                </font>m.ModuleId = (int) result["ModuleID"];
+<font color= "blue">                </font>m.ModuleDefId = (int) result["ModuleDefID"];
+<font color= "blue">                </font>m.TabId = (int) result["TabID"];
+<font color= "blue">                </font>m.PaneName = (String) result["PaneName"];
+<font color= "blue">                </font>m.ModuleTitle = (String) result["ModuleTitle"];
+<font color= "blue">                </font>m.AuthorizedEditRoles = (String) result["AuthorizedEditRoles"];
+<font color= "blue">                </font>m.CacheTime = (int) result["CacheTime"];
+<font color= "blue">                </font>m.ModuleOrder = (int) result["ModuleOrder"];
+<font color= "blue">                </font>m.ShowMobile = (bool) result["ShowMobile"];
+<font color= "blue">                </font>m.DesktopSrc = (String) result["DesktopSrc"];
+<font color= "blue">                </font>m.MobileSrc = (String) result["MobileSrc"];
+<font color= "blue"></font>
+<font color= "blue">                </font>this.ActiveTab.Modules.Add(m);
+<font color= "blue">            </font>}
+<font color= "blue"></font>
+<font color= "green">            // Now read Portal out params </font>
+<font color= "blue">            </font>result.NextResult();
+<font color= "blue"></font>
+<font color= "blue">            </font>this.PortalId = (int) parameterPortalID.Value;
+<font color= "blue">            </font>this.PortalName = (String) parameterPortalName.Value;
+<font color= "blue">            </font>this.AlwaysShowEditButton = (bool) parameterEditButton.Value;
+<font color= "blue">            </font>this.ActiveTab.TabIndex = tabIndex;
+<font color= "blue">            </font>this.ActiveTab.TabId = tabId;
+<font color= "blue">            </font>this.ActiveTab.TabOrder = (int) parameterTabOrder.Value;
+<font color= "blue">            </font>this.ActiveTab.MobileTabName = (String) parameterMobileTabName.Value;
+<font color= "blue">            </font>this.ActiveTab.AuthorizedRoles = (String) parameterAuthRoles.Value;
+<font color= "blue">            </font>this.ActiveTab.TabName = (String) parameterTabName.Value;
+<font color= "blue">            </font>this.ActiveTab.ShowMobile = (bool) parameterShowMobile.Value;
+<font color= "blue"></font>
+<font color= "blue">            </font>myConnection.Close();
+<font color= "blue">        </font>}
+<font color= "blue">    </font>
+<font color= "blue"></font>
+<font color= "green">        //*********************************************************************</font>
+<font color= "green">        //</font>
+<font color= "green">        // GetModuleSettings Static Method</font>
+<font color= "green">        //</font>
+<font color= "green">        // The PortalSettings.GetModuleSettings Method returns a hashtable of</font>
+<font color= "green">        // custom module specific settings from the database.  This method is</font>
+<font color= "green">        // used by some user control modules (Xml, Image, etc) to access misc</font>
+<font color= "green">        // settings.</font>
+<font color= "green">        //</font>
+<font color= "green">        //*********************************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">        public </font>static Hashtable GetModuleSettings(int moduleId) {
+<font color= "blue"></font>
+<font color= "green">            // Get Settings for this module from the database</font>
+<font color= "blue">            </font>Hashtable _settings = new Hashtable();
+<font color= "blue"></font>
+<font color= "green">            // Create Instance of Connection and Command Object</font>
+<font color= "blue">            </font>SqlConnection myConnection = new SqlConnection(ConfigurationSettings.AppSettings["connectionString"]);
+<font color= "blue">            </font>SqlCommand myCommand = new SqlCommand("GetModuleSettings", myConnection);
+<font color= "blue"></font>
+<font color= "green">            // Mark the Command as a SPROC</font>
+<font color= "blue">            </font>myCommand.CommandType = CommandType.StoredProcedure;
+<font color= "blue"></font>
+<font color= "green">            // Add Parameters to SPROC</font>
+<font color= "blue">            </font>SqlParameter parameterModuleId = new SqlParameter("@ModuleID", SqlDbType.Int, 4);
+<font color= "blue">            </font>parameterModuleId.Value = moduleId;
+<font color= "blue">            </font>myCommand.Parameters.Add(parameterModuleId);
+<font color= "blue"></font>
+<font color= "green">            // Execute the command</font>
+<font color= "blue">            </font>myConnection.Open();
+<font color= "blue">            </font>SqlDataReader dr = myCommand.ExecuteReader(CommandBehavior.CloseConnection);
+<font color= "blue"></font>
+<font color= "blue">            while</font> (dr.Read()) {
+<font color= "blue"></font>
+<font color= "blue">                </font>_settings[dr.GetString(0)] = dr.GetString(1);
+<font color= "blue">            </font>}
+<font color= "blue"></font>
+<font color= "blue">            </font>dr.Close();
+<font color= "blue"></font>
+<font color= "blue">            return</font> _settings;
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>}
+</pre>

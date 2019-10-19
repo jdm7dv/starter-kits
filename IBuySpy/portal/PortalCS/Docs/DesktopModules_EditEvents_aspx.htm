@@ -1,0 +1,245 @@
+<html><head><link rel=stylesheet href=style.css></head><body><div class=SourcePanel style='font-size:12'><pre style='background-color:white'>
+&lt%@ Page Language="C#" %<font color= "blue">&gt</font>
+&lt%@ Register TagPrefix="portal" TagName="Banner" Src="~/DesktopPortalBanner.ascx" %<font color= "blue">&gt</font>
+&lt%@ Import Namespace="System.Data.SqlClient" %<font color= "blue">&gt</font>
+&lt%@ Import Namespace="ASPNetPortal" %<font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">script</font> runat="server"<font color= "blue">&gt</font>
+<font color= "blue"></font>
+<font color= "blue">    </font>int itemId = 0;
+<font color= "blue">    </font>int moduleId = 0;
+<font color= "blue"></font>
+<font color= "green">    //****************************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The Page_Load event on this Page is used to obtain the ModuleId</font>
+<font color= "green">    // and ItemId of the event to edit.</font>
+<font color= "green">    //</font>
+<font color= "green">    // It then uses the ASPNetPortal.EventsDB() data component</font>
+<font color= "green">    // to populate the page's edit controls with the event details.</font>
+<font color= "green">    //</font>
+<font color= "green">    //****************************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> Page_Load(Object Sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Determine ModuleId of Events Portal Module</font>
+<font color= "blue">        </font>moduleId = Int32.Parse(Request.Params["Mid"]);
+<font color= "blue"></font>
+<font color= "green">        // Verify that the current user has access to edit this module</font>
+<font color= "blue"></font><font color= "blue">        if </font>(PortalSecurity.HasEditPermissions(moduleId) == false) {<font color= "blue"></font>
+<font color= "blue">            </font>Response.Redirect("~/Admin/EditAccessDenied.aspx");
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "green">        // Determine ItemId of Events to Update</font>
+<font color= "blue"></font><font color= "blue">        if </font>(Request.Params["ItemId"] != null) {<font color= "blue"></font>
+<font color= "blue">            </font>itemId = Int32.Parse(Request.Params["ItemId"]);
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "green">        // If the page is being requested the first time, determine if an</font>
+<font color= "green">        // event itemId value is specified, and if so populate page</font>
+<font color= "green">        // contents with the event details</font>
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">        if </font>(Page.IsPostBack == false) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">            if </font>(itemId != 0) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "green">                // Obtain a single row of event information</font>
+<font color= "blue">                </font>ASPNetPortal.EventsDB events = new ASPNetPortal.EventsDB();
+<font color= "blue">                </font>SqlDataReader dr = events.GetSingleEvent(itemId);
+<font color= "blue">                </font>
+<font color= "green">                // Read first row from database</font>
+<font color= "blue">                </font>dr.Read();
+<font color= "blue"></font>
+<font color= "blue">                </font>TitleField.Text = (String) dr["Title"];
+<font color= "blue">                </font>DescriptionField.Text = (String) dr["Description"];
+<font color= "blue">                </font>ExpireField.Text = ((DateTime) dr["ExpireDate"]).ToShortDateString();
+<font color= "blue">                </font>CreatedBy.Text = (String) dr["CreatedByUser"];
+<font color= "blue">                </font>WhereWhenField.Text = (String) dr["WhereWhen"];
+<font color= "blue">                </font>CreatedDate.Text = ((DateTime) dr["CreatedDate"]).ToShortDateString();
+<font color= "blue">                </font>
+<font color= "blue">                </font>dr.Close();
+<font color= "blue">            </font>}
+<font color= "blue"></font>
+<font color= "green">            // Store URL Referrer to return to portal</font>
+<font color= "blue">            </font>ViewState["UrlReferrer"] = Request.UrlReferrer.ToString();
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //****************************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The UpdateBtn_Click event handler on this Page is used to either</font>
+<font color= "green">    // create or update an event.  It uses the ASPNetPortal.EventsDB()</font>
+<font color= "green">    // data component to encapsulate all data functionality.</font>
+<font color= "green">    //</font>
+<font color= "green">    //****************************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> UpdateBtn_Click(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Only Update if the Entered Data is Valid</font>
+<font color= "blue"></font><font color= "blue">        if </font>(Page.IsValid == true) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "green">            // Create an instance of the Event DB component</font>
+<font color= "blue">            </font>ASPNetPortal.EventsDB events = new ASPNetPortal.EventsDB();
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">            if </font>(itemId == 0) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "green">                // Add the event within the Events table</font>
+<font color= "blue">                </font>events.AddEvent( moduleId, itemId, Context.User.Identity.Name, TitleField.Text, DateTime.Parse(ExpireField.Text), DescriptionField.Text, WhereWhenField.Text );
+<font color= "blue">            </font>}
+<font color= "blue"></font><font color= "blue">            else </font>{<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "green">                // Update the event within the Events table</font>
+<font color= "blue">                </font>events.UpdateEvent( moduleId, itemId, Context.User.Identity.Name, TitleField.Text, DateTime.Parse(ExpireField.Text), DescriptionField.Text, WhereWhenField.Text );
+<font color= "blue">            </font>}
+<font color= "blue"></font>
+<font color= "green">            // Redirect back to the portal home page</font>
+<font color= "blue">            </font>Response.Redirect((String) ViewState["UrlReferrer"]);
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //****************************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The DeleteBtn_Click event handler on this Page is used to delete an</font>
+<font color= "green">    // an event.  It  uses the ASPNetPortal.EventsDB() data component to</font>
+<font color= "green">    // encapsulate all data functionality.</font>
+<font color= "green">    //</font>
+<font color= "green">    //****************************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> DeleteBtn_Click(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Only attempt to delete the item if it is an existing item</font>
+<font color= "green">        // (new items will have "ItemId" of 0)</font>
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">        if </font>(itemId != 0) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "blue">            </font>ASPNetPortal.EventsDB events = new ASPNetPortal.EventsDB();
+<font color= "blue">            </font>events.DeleteEvent(itemId);
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "green">        // Redirect back to the portal home page</font>
+<font color= "blue">        </font>Response.Redirect((String) ViewState["UrlReferrer"]);
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //****************************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The CancelBtn_Click event handler on this Page is used to cancel</font>
+<font color= "green">    // out of the page, and return the user back to the portal home</font>
+<font color= "green">    // page.</font>
+<font color= "green">    //</font>
+<font color= "green">    //****************************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> CancelBtn_Click(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Redirect back to the portal home page</font>
+<font color= "blue">        </font>Response.Redirect((String) ViewState["UrlReferrer"]);
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "blue">&lt/</font><font color="maroon">script</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">html</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">head</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">link</font> rel="stylesheet" href='&lt%= Request.ApplicationPath + "/Portal.css" %<font color= "blue">&gt</font>' type="text/css" <font color= "blue">/&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">head</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">body</font> leftmargin="0" bottommargin="0" rightmargin="0" topmargin="0" marginheight="0" marginwidth="0"<font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">form</font> runat="server"<font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color="maroon">table</font> width="100%" cellspacing="0" cellpadding="0" border="0"<font color= "blue">&gt</font>
+                <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                    <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2"<font color= "blue">&gt</font>
+                        <font color= "blue">&lt</font><font color=blue>portal:Banner id="SiteHeader" runat="server" /</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                        <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                        <font color= "blue">&lt</font><font color="maroon">table</font> width="98%" cellspacing="0" cellpadding="4" border="0"<font color= "blue">&gt</font>
+                            <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font> width="100"<font color= "blue">&gt</font>
+                                    &nbsp;
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt</font><font color="maroon">td</font> width="*"<font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color="maroon">table</font> width="500" cellspacing="0" cellpadding="0"<font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> align="left" class="Head"<font color= "blue">&gt</font>
+                                                Event Details
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color="maroon">hr</font> noshade size="1pt"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color="maroon">table</font> width="750" cellspacing="0" cellpadding="0"<font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> width="100" class="SubHead"<font color= "blue">&gt</font>
+                                                Title:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> rowspan="4"<font color= "blue">&gt</font>
+                                                &nbsp;
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:TextBox id="TitleField" cssclass="NormalTextBox" width="390" Columns="30" maxlength="150" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> width="25" rowspan="4"<font color= "blue">&gt</font>
+                                                &nbsp;
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="Normal" width="250"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:RequiredFieldValidator Display="Static" runat="server" ErrorMessage="You Must Enter a Valid Title" ControlToValidate="TitleField" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="SubHead"<font color= "blue">&gt</font>
+                                                Description:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:TextBox id="DescriptionField" TextMode="Multiline" width="390" Columns="44" Rows="6" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="Normal"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:RequiredFieldValidator Display="Static" runat="server" ErrorMessage="You Must Enter a Valid Description" ControlToValidate="DescriptionField" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="SubHead"<font color= "blue">&gt</font>
+                                                Where/When:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:TextBox id="WhereWhenField" cssclass="NormalTextBox" width="390" Columns="30" maxlength="150" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="Normal"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:RequiredFieldValidator Display="Static" runat="server" ErrorMessage="You Must Enter a Valid Time/Location" ControlToValidate="WhereWhenField" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">tr</font> valign="top"<font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="SubHead"<font color= "blue">&gt</font>
+                                                Expires:
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:TextBox id="ExpireField" Text="12/31/2001" cssclass="NormalTextBox" width="100" Columns="8" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">td</font> class="Normal"<font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:RequiredFieldValidator Display="Static" id="RequiredExpireDate" runat="server" ErrorMessage="You Must Enter a Valid Expiration Date" ControlToValidate="ExpireField" /</font><font color= "blue">&gt</font>
+                                                <font color= "blue">&lt</font><font color=blue>asp:CompareValidator Display="Static" id="VerifyExpireDate" runat="server" Operator="DataTypeCheck" ControlToValidate="ExpireField" Type="Date" ErrorMessage="You Must Enter a Valid Expiration Date" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt</font><font color="maroon">p</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color=blue>asp:LinkButton id="updateButton" Text="Update" runat="server" class="CommandButton" BorderStyle="none" OnClick="UpdateBtn_Click" /</font><font color= "blue">&gt</font>
+                                        &nbsp;
+                                        <font color= "blue">&lt</font><font color=blue>asp:LinkButton id="cancelButton" Text="Cancel" CausesValidation="False" runat="server" class="CommandButton" BorderStyle="none" OnClick="CancelBtn_Click" /</font><font color= "blue">&gt</font>
+                                        &nbsp;
+                                        <font color= "blue">&lt</font><font color=blue>asp:LinkButton id="deleteButton" Text="Delete this item" CausesValidation="False" runat="server" class="CommandButton" BorderStyle="none" OnClick="DeleteBtn_Click" /</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">hr</font> noshade size="1pt" width="500"<font color= "blue">&gt</font>
+                                        <font color= "blue">&lt</font><font color="maroon">span</font> class="Normal"<font color= "blue">&gt</font>Created by
+                                            <font color= "blue">&lt</font><font color=blue>asp:label id="CreatedBy" runat="server" /</font><font color= "blue">&gt</font>
+                                            on
+                                            <font color= "blue">&lt</font><font color=blue>asp:label id="CreatedDate" runat="server" /</font><font color= "blue">&gt</font>
+                                            <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+                                        <font color= "blue">&lt/</font><font color="maroon">span</font><font color= "blue">&gt</font>
+                                    <font color= "blue">&lt/</font><font color="maroon">p</font><font color= "blue">&gt</font>
+                                <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                            <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+                        <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+                    <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color="maroon">form</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">body</font><font color= "blue">&gt</font>
+<font color= "blue">&lt/</font><font color="maroon">html</font><font color= "blue">&gt</font>
+</pre>

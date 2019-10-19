@@ -1,0 +1,80 @@
+<html><head><link rel=stylesheet href=style.css></head><body><div class=SourcePanel style='font-size:12'><pre style='background-color:white'>
+&lt%@ Control Inherits="ASPNetPortal.PortalModuleControl" %<font color= "blue">&gt</font>
+&lt%@ Register TagPrefix="Portal" TagName="Title" Src="~/DesktopModuleTitle.ascx"%<font color= "blue">&gt</font>
+&lt%@ Import Namespace="ASPNetPortal" %<font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">script</font> language="C#" runat="server"<font color= "blue">&gt</font>
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The Page_Load server event handler on this user control is used</font>
+<font color= "green">    // to populate the current site settings from the config system</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> Page_Load(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Verify that the current user has access to access this page</font>
+<font color= "blue"></font><font color= "blue">        if </font>(PortalSecurity.IsInRoles("Admins") == false) {<font color= "blue"></font>
+<font color= "blue">            </font>Response.Redirect("~/Admin/EditAccessDenied.aspx");
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "green">        // If this is the first visit to the page, populate the site data</font>
+<font color= "blue"></font><font color= "blue">        if </font>(Page.IsPostBack == false) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "green">            // Obtain PortalSettings from Current Context</font>
+<font color= "blue">            </font>PortalSettings portalSettings = (PortalSettings) Context.Items["PortalSettings"];
+<font color= "blue"></font>
+<font color= "blue">            </font>siteName.Text = portalSettings.PortalName;
+<font color= "blue">            </font>showEdit.Checked = portalSettings.AlwaysShowEditButton;
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The Apply_Click server event handler is used</font>
+<font color= "green">    // to update the Site Name within the Portal Config System</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> Apply_Click(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Obtain PortalSettings from Current Context</font>
+<font color= "blue">        </font>PortalSettings portalSettings = (PortalSettings) Context.Items["PortalSettings"];
+<font color= "blue"></font>
+<font color= "green">        // update Tab info in the database</font>
+<font color= "blue">        </font>AdminDB admin = new AdminDB();
+<font color= "blue">        </font>admin.UpdatePortalInfo(portalSettings.PortalId, siteName.Text, showEdit.Checked);
+<font color= "blue"></font>
+<font color= "green">        // Redirect to this site to refresh</font>
+<font color= "blue">        </font>Response.Redirect(Request.RawUrl);
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "blue">&lt/</font><font color="maroon">script</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color=blue>portal:title runat="server" /</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">table</font> cellpadding="2" cellspacing="0" border="0"<font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">td</font> width="100" class="Normal"<font color= "blue">&gt</font>
+            Site Title:
+        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2" class="NormalTextBox"<font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color=blue>asp:Textbox id="siteName" width="240" runat="server" /</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">td</font> class="Normal"<font color= "blue">&gt</font>
+            Always show edit button?:
+        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2" class="Normal"<font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color=blue>asp:CheckBox id="showEdit" runat="server" /</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+            &nbsp;
+        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">td</font> colspan="2"<font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color=blue>asp:LinkButton id="applyBtn" class="CommandButton" Text="Apply Changes" onclick="Apply_Click" runat="server" /</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+<font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+</pre>

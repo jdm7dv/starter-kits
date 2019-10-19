@@ -1,0 +1,78 @@
+<html><head><link rel=stylesheet href=style.css></head><body><div class=SourcePanel style='font-size:12'><pre style='background-color:white'>
+&lt%@ Control language="C#" Inherits="ASPNetPortal.PortalModuleControl" %<font color= "blue">&gt</font>
+&lt%@ Register TagPrefix="Portal" TagName="Title" Src="~/DesktopModuleTitle.ascx"%<font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">script</font> runat="server"<font color= "blue">&gt</font>
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The Page_Load event handler on this User Control is used to</font>
+<font color= "green">    // obtain a SqlDataReader of document information from the </font>
+<font color= "green">    // Documents table, and then databind the results to a DataGrid</font>
+<font color= "green">    // server control.  It uses the ASPNetPortal.DocumentDB()</font>
+<font color= "green">    // data component to encapsulate all data functionality.</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> Page_Load(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Obtain Document Data from Documents table</font>
+<font color= "green">        // and bind to the datalist control</font>
+<font color= "blue">        </font>ASPNetPortal.DocumentDB documents = new ASPNetPortal.DocumentDB();
+<font color= "blue"></font>
+<font color= "blue">        </font>myDataGrid.DataSource = documents.GetDocuments(ModuleId);
+<font color= "blue">        </font>myDataGrid.DataBind();
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // GetBrowsePath() is a helper method used to create the url   </font>
+<font color= "green">    // to the document.  If the size of the content stored in the   </font>
+<font color= "green">    // database is non-zero, it creates a path to browse that.   </font>
+<font color= "green">    // Otherwise, the FileNameUrl value is used.</font>
+<font color= "green">    //</font>
+<font color= "green">    // This method is used in the databinding expression for</font>
+<font color= "green">    // the browse Hyperlink within the DataGrid, and is called </font>
+<font color= "green">    // for each row when DataGrid.DataBind() is called.  It is </font>
+<font color= "green">    // defined as a helper method here (as opposed to inline </font>
+<font color= "green">    // within the template) to improve code organization and</font>
+<font color= "green">    // avoid embedding logic within the content template.</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    </font>String GetBrowsePath(String url, object size, int documentId) {
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">        if </font>(size != DBNull.Value && (int) size > 0) {<font color= "blue"></font>
+<font color= "blue">        </font>
+<font color= "green">            // if there is content in the database, create an </font>
+<font color= "green">            // url to browse it</font>
+<font color= "blue">            </font>
+<font color= "blue">            return</font> "~/DesktopModules/ViewDocument.aspx?DocumentID=" + documentId.ToString();
+<font color= "blue">        </font>}
+<font color= "blue"></font><font color= "blue">        else </font>{<font color= "blue"></font>
+<font color= "blue">            </font>
+<font color= "green">            // otherwise, return the FileNameUrl</font>
+<font color= "blue">            return</font> url;
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "blue">&lt/</font><font color="maroon">script</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color=blue>portal:title EditText="Add New Document" EditUrl="~/DesktopModules/EditDocs.aspx" runat="server" /</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color=blue>asp:datagrid id="myDataGrid" Border="0" width="100%" AutoGenerateColumns="false" EnableViewState="false" runat="server"</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">Columns</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color=blue>asp:TemplateColumn</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color="maroon">ItemTemplate</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt</font><font color=blue>asp:HyperLink id="editLink" ImageUrl="~/images/edit.gif" NavigateUrl='&lt%# "~/DesktopModules/EditDocs.aspx?ItemID=" + DataBinder.Eval(Container.DataItem,"ItemID")  + "&mid=" + ModuleId %<font color= "blue">&gt</font>' Visible="&lt%# IsEditable %<font color= "blue">&gt</font>" runat="server" /</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt/</font><font color="maroon">ItemTemplate</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color=blue>asp:TemplateColumn</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color=blue>asp:TemplateColumn HeaderText="Title" HeaderStyle-CssClass="NormalBold"</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color="maroon">ItemTemplate</font><font color= "blue">&gt</font>
+                <font color= "blue">&lt</font><font color=blue>asp:HyperLink id="docLink" Text='&lt%# DataBinder.Eval(Container.DataItem,"FileFriendlyName") %<font color= "blue">&gt</font>' NavigateUrl='&lt%# GetBrowsePath(DataBinder.Eval(Container.DataItem,"FileNameUrl").ToString(), DataBinder.Eval(Container.DataItem,"ContentSize"), (int) DataBinder.Eval(Container.DataItem,"ItemId")) %<font color= "blue">&gt</font>' CssClass="Normal" Target="_new" runat="server" /</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt/</font><font color="maroon">ItemTemplate</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color=blue>asp:TemplateColumn</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color=blue>asp:BoundColumn HeaderText="Owner" DataField="CreatedByUser" ItemStyle-CssClass="Normal" HeaderStyle-Cssclass="NormalBold" /</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color=blue>asp:BoundColumn HeaderText="Area" DataField="Category" ItemStyle-Wrap="false" ItemStyle-CssClass="Normal" HeaderStyle-Cssclass="NormalBold" /</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color=blue>asp:BoundColumn HeaderText="Last Updated" DataField="CreatedDate" DataFormatString="{0:d}" ItemStyle-CssClass="Normal" HeaderStyle-Cssclass="NormalBold" /</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">Columns</font><font color= "blue">&gt</font>
+<font color= "blue">&lt/</font><font color=blue>asp:datagrid</font><font color= "blue">&gt</font>
+</pre>

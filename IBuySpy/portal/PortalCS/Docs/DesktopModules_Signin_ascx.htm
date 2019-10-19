@@ -1,0 +1,67 @@
+<html><head><link rel=stylesheet href=style.css></head><body><div class=SourcePanel style='font-size:12'><pre style='background-color:white'>
+&lt%@ Control language="C#" Inherits="ASPNetPortal.PortalModuleControl" %<font color= "blue">&gt</font>
+&lt%@ Import Namespace="ASPNetPortal" %<font color= "blue">&gt</font>
+<font color= "green">&lt%--
+
+   The SignIn User Control enables clients to authenticate themselves using 
+   the ASP.NET Forms based authentication system.
+
+   When a client enters their username/password within the appropriate
+   textboxes and clicks the "Login" button, the LoginBtn_Click event
+   handler executes on the server and attempts to validate their
+   credentials against a SQL database.
+
+   If the password check succeeds, then the LoginBtn_Click event handler
+   sets the customers username in an encrypted cookieID and redirects
+   back to the portal home page.
+
+   If the password check fails, then an appropriate error message
+   is displayed.
+
+--%<font color= "blue">&gt</font></font>
+<font color= "blue">&lt</font><font color="maroon">script</font> runat="server"<font color= "blue">&gt</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> LoginBtn_Click(Object sender, ImageClickEventArgs e) {
+<font color= "blue"></font>
+<font color= "green">        // Attempt to Validate User Credentials using UsersDB</font>
+<font color= "blue">        </font>UsersDB accountSystem = new UsersDB();
+<font color= "blue">        </font>String userId = accountSystem.Login(email.Text, PortalSecurity.Encrypt(password.Text));
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">        if </font>((userId != null) && (userId != "")) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "green">            // Use security system to set the UserID within a client-side Cookie</font>
+<font color= "blue">            </font>FormsAuthentication.SetAuthCookie(email.Text, RememberCheckbox.Checked);
+<font color= "blue"></font>
+<font color= "green">            // Redirect browser back to originating page</font>
+<font color= "blue">            </font>Response.Redirect(Request.ApplicationPath);
+<font color= "blue">        </font>}
+<font color= "blue"></font><font color= "blue">        else </font>{<font color= "blue"></font>
+<font color= "blue">            </font>Message.Text = "<" + "br" + ">Login Failed!" + "<" + "br" + ">";
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "blue">&lt/</font><font color="maroon">script</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">hr</font> noshade size="1pt" width="98%"<font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">span</font> class="SubSubHead" style="height:20"<font color= "blue">&gt</font>Account Login<font color= "blue">&lt/</font><font color="maroon">span</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">span</font> class="Normal"<font color= "blue">&gt</font>Email:<font color= "blue">&lt/</font><font color="maroon">span</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color=blue>asp:TextBox id="email" columns="9" width="130" cssclass="NormalTextBox" runat="server" /</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">span</font> class="Normal"<font color= "blue">&gt</font>Password:<font color= "blue">&lt/</font><font color="maroon">span</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color=blue>asp:TextBox id="password" columns="9" width="130" textmode="password" cssclass="NormalTextBox" runat="server" /</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color=blue>asp:checkbox id="RememberCheckbox" class="Normal" Text="Remember Login" runat="server" /</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">table</font> width="100%" cellspacing="0" cellpadding="4" border="0"<font color= "blue">&gt</font>
+    <font color= "blue">&lt</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt</font><font color="maroon">td</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color=blue>asp:ImageButton id="SigninBtn" ImageUrl="~/images/signin.gif" OnClick="LoginBtn_Click" runat="server" /</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color="maroon">a</font> href="Admin/Register.aspx"<font color= "blue">&gt</font><font color= "blue">&lt</font><font color="maroon">img</font> src="images/register.gif" border="0"<font color= "blue">&gt</font><font color= "blue">&lt/</font><font color="maroon">a</font><font color= "blue">&gt</font>
+            <font color= "blue">&lt</font><font color=blue>asp:label id="Message" class="NormalRed" runat="server" /</font><font color= "blue">&gt</font>
+        <font color= "blue">&lt/</font><font color="maroon">td</font><font color= "blue">&gt</font>
+    <font color= "blue">&lt/</font><font color="maroon">tr</font><font color= "blue">&gt</font>
+<font color= "blue">&lt/</font><font color="maroon">table</font><font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">br</font><font color= "blue">&gt</font>
+</pre>

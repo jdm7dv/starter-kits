@@ -1,0 +1,51 @@
+<html><head><link rel=stylesheet href=style.css></head><body><div class=SourcePanel style='font-size:12'><pre style='background-color:white'>
+&lt%@ Page Language="c#" %<font color= "blue">&gt</font>
+&lt%@ Import Namespace="System.Data.SqlClient" %<font color= "blue">&gt</font>
+&lt%@ Import Namespace="ASPNetPortal" %<font color= "blue">&gt</font>
+<font color= "blue">&lt</font><font color="maroon">script</font> runat="server"<font color= "blue">&gt</font>
+<font color= "blue"></font>
+<font color= "blue">    </font>int documentId = -1;
+<font color= "blue"></font>
+<font color= "green">    //*******************************************************</font>
+<font color= "green">    //</font>
+<font color= "green">    // The Page_Load event handler on this Page is used to</font>
+<font color= "green">    // obtain obtain the contents of a document from the</font>
+<font color= "green">    // Documents table, construct an HTTP Response of the</font>
+<font color= "green">    // correct type for the document, and then stream the</font>
+<font color= "green">    // document contents to the response.  It uses the</font>
+<font color= "green">    // ASPNetPortal.DocumentDB() data component to encapsulate</font>
+<font color= "green">    // the data access functionality.</font>
+<font color= "green">    //</font>
+<font color= "green">    //*******************************************************</font>
+<font color= "blue"></font>
+<font color= "blue">    void</font> Page_Load(Object sender, EventArgs e) {
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">        if </font>(Request.Params["DocumentId"] != null) {<font color= "blue"></font>
+<font color= "blue">            </font>documentId = Int32.Parse(Request.Params["DocumentId"]);
+<font color= "blue">        </font>}
+<font color= "blue"></font>
+<font color= "blue"></font><font color= "blue">        if </font>(documentId != -1) {<font color= "blue"></font>
+<font color= "blue"></font>
+<font color= "green">            // Obtain Document Data from Documents table</font>
+<font color= "blue">            </font>ASPNetPortal.DocumentDB documents = new ASPNetPortal.DocumentDB();
+<font color= "blue"></font>
+<font color= "blue">            </font>SqlDataReader dBContent = documents.GetDocumentContent(documentId);
+<font color= "blue">            </font>dBContent.Read();
+<font color= "blue"></font>
+<font color= "green">            // Serve up the file by name</font>
+<font color= "blue">            </font>Response.AppendHeader("content-disposition","filename=" + (String)dBContent["FileFriendlyName"]);
+<font color= "blue"></font>
+<font color= "green">            // set the content type for the Response to that of the</font>
+<font color= "green">            // document to display.  For example. "application/msword"</font>
+<font color= "blue">            </font>Response.ContentType = (String) dBContent["ContentType"];
+<font color= "blue"></font>
+<font color= "green">            // output the actual document contents to the response output stream</font>
+<font color= "blue">            </font>Response.OutputStream.Write((byte[]) dBContent["Content"], 0, (int) dBContent["ContentSize"]);
+<font color= "blue"></font>
+<font color= "green">            // end the response</font>
+<font color= "blue">            </font>Response.End();
+<font color= "blue">        </font>}
+<font color= "blue">    </font>}
+<font color= "blue"></font>
+<font color= "blue">&lt/</font><font color="maroon">script</font><font color= "blue">&gt</font>
+</pre>
