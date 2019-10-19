@@ -1,0 +1,2 @@
+9:54:45 PM Friday, October 18, 2019: [Checking system requirements]
+9:54:45 PM Friday, October 18, 2019: [Pass] Detected a local instance of SQL Server.
