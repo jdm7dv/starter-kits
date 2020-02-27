@@ -1,0 +1,2 @@
+6:57:52 AM Thursday, February 27, 2020: [Checking system requirements]
+6:57:52 AM Thursday, February 27, 2020: [Pass] Detected a local instance of SQL Server.

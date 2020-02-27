@@ -1,0 +1,266 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{5068CA32-2C0E-42C0-83F7-52F8E44CAD78}</ProjectGuid>
+    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>IBuySpy</RootNamespace>
+    <AssemblyName>IBuySpy</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <UseIISExpress>true</UseIISExpress>
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Web.DynamicData" />
+    <Reference Include="System.Web.Entity" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.EnterpriseServices" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="AddToCart.aspx" />
+    <Content Include="CheckOut.aspx" />
+    <Content Include="Default.aspx" />
+    <Content Include="ErrorPage.aspx" />
+    <Content Include="IBuySpy.css" />
+    <Content Include="images\1x1.gif" />
+    <Content Include="images\account.gif" />
+    <Content Include="images\add_to_cart.gif" />
+    <Content Include="images\arrowbutton.gif" />
+    <Content Include="images\cart.gif" />
+    <Content Include="images\final_checkout.gif" />
+    <Content Include="images\grid_background.gif" />
+    <Content Include="images\help_bkgrd.gif" />
+    <Content Include="images\logo.gif" />
+    <Content Include="images\modernliving.gif" />
+    <Content Include="images\modernliving_bkgrd.gif" />
+    <Content Include="images\most_secretive_place.gif" />
+    <Content Include="images\register.gif" />
+    <Content Include="images\reviewrating1.gif" />
+    <Content Include="images\reviewrating2.gif" />
+    <Content Include="images\reviewrating3.gif" />
+    <Content Include="images\reviewrating4.gif" />
+    <Content Include="images\reviewrating5.gif" />
+    <Content Include="images\review_this_product.gif" />
+    <Content Include="images\search.gif" />
+    <Content Include="images\services.gif" />
+    <Content Include="images\sign_in.gif" />
+    <Content Include="images\sign_in_now.gif" />
+    <Content Include="images\sitebkgrd.gif" />
+    <Content Include="images\sitebkgrdnogray.GIF" />
+    <Content Include="images\submit.gif" />
+    <Content Include="images\target.gif" />
+    <Content Include="images\update_cart.gif" />
+    <Content Include="InstantOrder.asmx" />
+    <Content Include="Login.aspx" />
+    <Content Include="OrderDetails.aspx" />
+    <Content Include="OrderList.aspx" />
+    <Content Include="ProductDetails.aspx" />
+    <Content Include="ProductImages\image.gif" />
+    <Content Include="ProductImages\thumbs\image.gif" />
+    <Content Include="ProductsList.aspx" />
+    <Content Include="Register.aspx" />
+    <Content Include="ReviewAdd.aspx" />
+    <Content Include="SearchResults.aspx" />
+    <Content Include="ShoppingCart.aspx" />
+    <Content Include="SourceViewer\1x1.gif" />
+    <Content Include="SourceViewer\grid_background.gif" />
+    <Content Include="SourceViewer\srcview.aspx" />
+    <Content Include="SourceViewer\style.css" />
+    <Content Include="SourceViewer\tabview.aspx" />
+    <Content Include="Web.config" />
+    <Content Include="_AlsoBought.ascx" />
+    <Content Include="_Header.ascx" />
+    <Content Include="_Menu.ascx" />
+    <Content Include="_PopularItems.ascx" />
+    <Content Include="_ReviewList.ascx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AddToCart.aspx.cs">
+      <DependentUpon>AddToCart.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="CheckOut.aspx.cs">
+      <DependentUpon>CheckOut.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Components\CustomersDB.cs" />
+    <Compile Include="Components\OrdersDB.cs" />
+    <Compile Include="Components\ProductsDB.cs" />
+    <Compile Include="Components\ReviewsDB.cs" />
+    <Compile Include="Components\ShoppingCartDb.cs" />
+    <Compile Include="Default.aspx.cs">
+      <DependentUpon>Default.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ErrorPage.aspx.cs">
+      <DependentUpon>ErrorPage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="InstantOrder.asmx.cs">
+      <DependentUpon>InstantOrder.asmx</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Login.aspx.cs">
+      <DependentUpon>Login.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="OrderDetails.aspx.cs">
+      <DependentUpon>OrderDetails.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="OrderList.aspx.cs">
+      <DependentUpon>OrderList.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ProductDetails.aspx.cs">
+      <DependentUpon>ProductDetails.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ProductsList.aspx.cs">
+      <DependentUpon>ProductsList.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Register.aspx.cs">
+      <DependentUpon>Register.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReviewAdd.aspx.cs">
+      <DependentUpon>ReviewAdd.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="SearchResults.aspx.cs">
+      <DependentUpon>SearchResults.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ShoppingCart.aspx.cs">
+      <DependentUpon>ShoppingCart.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="_AlsoBought.ascx.cs">
+      <DependentUpon>_AlsoBought.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="_Header.ascx.cs">
+      <DependentUpon>_Header.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="_Menu.ascx.cs">
+      <DependentUpon>_Menu.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="_PopularItems.ascx.cs">
+      <DependentUpon>_PopularItems.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="_ReviewList.ascx.cs">
+      <DependentUpon>_ReviewList.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="IBuySpyStore.vsdisco" />
+    <Content Include="StoreCSVS.csproj.webinfo" />
+    <Content Include="SourceViewer\AddToCart.src" />
+    <Content Include="SourceViewer\alsobought.src" />
+    <Content Include="SourceViewer\CheckOut.src" />
+    <Content Include="SourceViewer\Default.src" />
+    <Content Include="SourceViewer\empty.src" />
+    <Content Include="SourceViewer\ErrorPage.src" />
+    <Content Include="SourceViewer\header.src" />
+    <Content Include="SourceViewer\instantorder.src" />
+    <Content Include="SourceViewer\Login.src" />
+    <Content Include="SourceViewer\menu.src" />
+    <Content Include="SourceViewer\OrderDetails.src" />
+    <Content Include="SourceViewer\OrderList.src" />
+    <Content Include="SourceViewer\popularitems.src" />
+    <Content Include="SourceViewer\ProductDetails.src" />
+    <Content Include="SourceViewer\ProductsList.src" />
+    <Content Include="SourceViewer\Register.src" />
+    <Content Include="SourceViewer\ReviewAdd.src" />
+    <Content Include="SourceViewer\reviewlist.src" />
+    <Content Include="SourceViewer\SearchResults.src" />
+    <Content Include="SourceViewer\ShoppingCart.src" />
+    <None Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+    <None Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="licenses.licx" />
+  </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>True</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>62773</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:62333/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

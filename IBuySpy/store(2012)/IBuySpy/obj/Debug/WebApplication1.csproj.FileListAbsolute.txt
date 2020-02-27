@@ -1,0 +1,6 @@
+C:\Users\Administrator.WIN-K3IRPO8DJ0E\Documents\Visual Studio 2012\Projects\WebApplication1\WebApplication1\bin\WebApplication1.dll
+C:\Users\Administrator.WIN-K3IRPO8DJ0E\Documents\Visual Studio 2012\Projects\WebApplication1\WebApplication1\bin\WebApplication1.pdb
+C:\Users\Administrator.WIN-K3IRPO8DJ0E\Documents\Visual Studio 2012\Projects\WebApplication1\WebApplication1\obj\Debug\WebApplication1.csprojResolveAssemblyReference.cache
+C:\Users\Administrator.WIN-K3IRPO8DJ0E\Documents\Visual Studio 2012\Projects\WebApplication1\WebApplication1\obj\Debug\WebApplication1.dll.licenses
+C:\Users\Administrator.WIN-K3IRPO8DJ0E\Documents\Visual Studio 2012\Projects\WebApplication1\WebApplication1\obj\Debug\WebApplication1.dll
+C:\Users\Administrator.WIN-K3IRPO8DJ0E\Documents\Visual Studio 2012\Projects\WebApplication1\WebApplication1\obj\Debug\WebApplication1.pdb

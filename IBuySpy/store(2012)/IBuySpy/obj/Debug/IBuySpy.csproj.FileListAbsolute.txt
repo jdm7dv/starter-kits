@@ -1,0 +1,11 @@
+C:\Users\Administrator.WIN-K3IRPO8DJ0E\Documents\Visual Studio 2012\Projects\WebApplication1\WebApplication1\bin\IBuySpy.dll
+C:\Users\Administrator.WIN-K3IRPO8DJ0E\Documents\Visual Studio 2012\Projects\WebApplication1\WebApplication1\bin\IBuySpy.pdb
+C:\Users\Administrator.WIN-K3IRPO8DJ0E\Documents\Visual Studio 2012\Projects\WebApplication1\WebApplication1\obj\Debug\IBuySpy.dll.licenses
+C:\Users\Administrator.WIN-K3IRPO8DJ0E\Documents\Visual Studio 2012\Projects\WebApplication1\WebApplication1\obj\Debug\IBuySpy.dll
+C:\Users\Administrator.WIN-K3IRPO8DJ0E\Documents\Visual Studio 2012\Projects\WebApplication1\WebApplication1\obj\Debug\IBuySpy.pdb
+C:\Users\Administrator.WIN-K3IRPO8DJ0E\Documents\Visual Studio 2012\Projects\IBuySpy\IBuySpy\bin\IBuySpy.dll
+C:\Users\Administrator.WIN-K3IRPO8DJ0E\Documents\Visual Studio 2012\Projects\IBuySpy\IBuySpy\bin\IBuySpy.pdb
+C:\Users\Administrator.WIN-K3IRPO8DJ0E\Documents\Visual Studio 2012\Projects\IBuySpy\IBuySpy\obj\Debug\IBuySpy.csprojResolveAssemblyReference.cache
+C:\Users\Administrator.WIN-K3IRPO8DJ0E\Documents\Visual Studio 2012\Projects\IBuySpy\IBuySpy\obj\Debug\IBuySpy.dll.licenses
+C:\Users\Administrator.WIN-K3IRPO8DJ0E\Documents\Visual Studio 2012\Projects\IBuySpy\IBuySpy\obj\Debug\IBuySpy.dll
+C:\Users\Administrator.WIN-K3IRPO8DJ0E\Documents\Visual Studio 2012\Projects\IBuySpy\IBuySpy\obj\Debug\IBuySpy.pdb
